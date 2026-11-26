@@ -1,0 +1,32 @@
+<%- include('partials/head', { title }) %>
+<%- include('partials/support-tabs', { tab, counts }) %>
+<%
+  const resultLabel = { open: '검토 중', removed: '조치 완료', kept: '검토 완료' };
+  const resultNote = { open: '', removed: '신고한 내용이 내려갔어요.', kept: '운영 규칙 위반이 아니라고 판단했어요.' };
+  const kindName = (r) => (r.target_type === 'post' ? '글' : '댓글');
+%>
+<main class="list">
+  <p class="back-link"><a href="/me">‹ 마이페이지</a></p>
+
+  <% if (!rows.length) { %>
+    <p class="empty">신고한 내역이 없어요.</p>
+  <% } else { %>
+    <ul class="my-comments">
+      <% rows.forEach(function (r) { %>
+        <li>
+          <% if (r.canOpen) { %><a class="my-comment" href="/p/<%= r.post_id %><%= r.target_type === 'comment' ? '#c' + r.target_id : '' %>"><% } else { %><div class="my-comment"><% } %>
+            <p class="ticket-title"><span class="report-kind"><%= kindName(r) %></span> <%= r.canOpen ? r.summary : '볼 수 없는 ' + kindName(r) %></p>
+            <p class="my-comment-meta">
+              <span class="ticket-state <%= r.result === 'open' ? 'open' : 'answered' %>"><%= resultLabel[r.result] %></span>
+              <span><%= reasons[r.reason] || '기타' %></span>
+              <span><%= h.timeAgo(r.created_at) %></span>
+            </p>
+            <% if (r.detail) { %><p class="report-note">신고 내용: <%= r.detail %></p><% } %>
+            <% if (resultNote[r.result]) { %><p class="report-note"><%= resultNote[r.result] %></p><% } %>
+          <% if (r.canOpen) { %></a><% } else { %></div><% } %>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</main>
+<%- include('partials/foot') %>

@@ -1,0 +1,164 @@
+<%- include('partials/head', { title, bodyClass: 'white' }) %>
+<%
+  const notices = {
+    reported: '신고가 접수됐어요. 운영자가 확인할게요.',
+    report_detail: '기타 신고는 무엇이 문제인지 5자 이상 써주세요.',
+    report_limit: `신고는 하루 ${reportLimit}번까지 할 수 있어요. 내일 다시 신고해주세요.`,
+    comment_pending: '댓글이 검토 후 공개돼요. 특정인이나 연락처로 보이는 내용이 있어요.',
+    comment_length: '댓글은 1~1000자로 써주세요.',
+    reply_gone: '답글을 달려던 댓글이 지워져서 답글을 올리지 못했어요.'
+  };
+  const reasonOptions = Object.entries(reasons);
+%>
+<header class="bar">
+  <a href="/forest" class="icon-btn" aria-label="목록으로">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+  </a>
+  <span class="bar-title"><%= post.board %> 게시판</span>
+  <details class="menu">
+    <summary class="icon-btn" aria-label="더보기 및 신고">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+    </summary>
+    <div class="menu-pop" data-menu-main>
+      <% if (!isMine) { %>
+        <button type="button" class="menu-item" data-share data-share-title="<%= post.title %>">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+          공유하기
+        </button>
+        <button type="button" class="menu-item" data-report-open data-type="post" data-id="<%= post.id %>">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V4"/><path d="M4 4h12l-2 4 2 4H4"/></svg>
+          신고하기
+        </button>
+      <% } %>
+      <% if (isMine || isAdmin) { %>
+        <form method="post" action="/p/<%= post.id %>/delete" data-confirm="이 글을 삭제할까요?">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="menu-item danger">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>
+            글 삭제<%= isMine ? '' : ' (운영자)' %>
+          </button>
+        </form>
+      <% } %>
+    </div>
+  </details>
+</header>
+
+<main class="post-wrap">
+  <% if (notice && notices[notice]) { %><p class="notice" role="status"><%= notices[notice] %></p><% } %>
+  <% if (post.status === 'pending') { %>
+    <p class="notice warn" role="status">이 글은 운영자 검토 후 공개돼요. 특정인을 알아볼 수 있는 내용이나 연락처가 있는지 확인하고 있어요.</p>
+  <% } else if (post.status === 'hidden') { %>
+    <p class="notice warn" role="status">신고가 쌓여 숨겨진 글이에요. 운영자가 확인 중이에요.</p>
+  <% } %>
+
+  <article class="post">
+    <div class="meta">
+      <% if (h.isHot(post)) { %><span class="tag hot">핫</span><% } %>
+      <%- include('partials/author-badge', { a: postAuthor }) %>
+      <span class="who">익명</span>
+      <span>· <%= h.timeAgo(post.created_at) %></span>
+      <span class="views">· 조회 <%= post.view_count %></span>
+      <% if (isAdmin && authorId) { %>
+        <span class="admin-meta">작성자 #<%= authorId %></span>
+      <% } %>
+    </div>
+    <h1><%= post.title %></h1>
+    <div class="post-body"><%= post.body %></div>
+
+    <div class="votes">
+      <button type="button" class="vote up<%= myPostVote === 1 ? ' on' : '' %>" data-vote="post" data-id="<%= post.id %>" data-value="1" aria-pressed="<%= myPostVote === 1 %>" <%= isMine ? 'disabled' : '' %>>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg>
+        추천 <span data-count="up"><%= post.up_count %></span>
+      </button>
+      <button type="button" class="vote down<%= myPostVote === -1 ? ' on' : '' %>" data-vote="post" data-id="<%= post.id %>" data-value="-1" aria-pressed="<%= myPostVote === -1 %>" <%= isMine ? 'disabled' : '' %>>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg>
+        반대 <span data-count="down"><%= post.down_count %></span>
+      </button>
+      <button type="button" class="vote save<%= saved ? ' on' : '' %>" data-bookmark="<%= post.id %>" aria-pressed="<%= saved %>">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <span data-bookmark-label><%= saved ? '저장됨' : '저장' %></span>
+      </button>
+    </div>
+    <p class="hint" data-vote-msg role="status" aria-live="polite"></p>
+
+    <% if (isAdmin && authorId) { %>
+      <form method="post" action="/admin/users/<%= authorId %>/ban" class="admin-inline" data-confirm="이 작성자의 글·댓글 작성을 제한할까요?">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="ban" value="1">
+        <input type="hidden" name="back" value="/p/<%= post.id %>">
+        <button type="submit" class="btn-text danger">작성자 이용 제한</button>
+      </form>
+    <% } %>
+  </article>
+
+  <section class="comments" id="comments" aria-label="댓글">
+    <strong class="comments-title">댓글 <%= commentTotal %></strong>
+    <% if (!comments.length) { %><p class="empty-sm">첫 댓글을 남겨보세요.</p><% } %>
+    <% const canReply = post.status === 'visible' && user.status !== 'banned'; %>
+    <% comments.forEach(function (c) { %>
+      <div class="thread">
+        <% if (c.removed) { %>
+          <div class="comment removed" id="c<%= c.id %>"><p class="comment-text">삭제되었거나 숨겨진 댓글이에요.</p></div>
+        <% } else { %>
+          <%- include('partials/comment', { c, reply: false, canReply }) %>
+        <% } %>
+        <% c.replies.forEach(function (r) { %>
+          <%- include('partials/comment', { c: r, reply: true, canReply }) %>
+        <% }) %>
+      </div>
+    <% }) %>
+  </section>
+</main>
+
+<% if (post.status === 'visible' && user.status !== 'banned') { %>
+  <form class="reply-bar" method="post" action="/p/<%= post.id %>/comments" data-reply-form>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="parent_id" value="" data-reply-parent>
+    <div class="reply-to" data-reply-to hidden>
+      <span><strong data-reply-to-name></strong>에게 답글 쓰는 중</span>
+      <button type="button" class="btn-text" data-reply-cancel>취소</button>
+    </div>
+    <label for="reply" class="sr-only">댓글 입력</label>
+    <input id="reply" name="body" type="text" maxlength="1000" placeholder="익명으로 댓글 달기" required autocomplete="off">
+    <button type="submit" class="send" aria-label="댓글 보내기">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+    </button>
+  </form>
+<% } %>
+<% if (!isMine || comments.length) { %>
+  <%# 신고 카드: 글·댓글 공용. 신고하기 버튼을 누르면 대상이 채워져서 열림 %>
+  <dialog class="sheet" id="report-sheet" aria-labelledby="report-sheet-title">
+    <form method="post" action="/report" class="sheet-card">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="type" value="post" data-report-type>
+      <input type="hidden" name="id" value="" data-report-id>
+      <div class="sheet-grip" aria-hidden="true"></div>
+      <h2 id="report-sheet-title" data-report-title>이 글을 신고할까요?</h2>
+      <p class="sheet-desc">신고는 익명으로 접수되고, 운영자가 확인해요. 신고가 쌓이면 확인 전까지 자동으로 가려져요.</p>
+      <% if (reportLeft !== null) { %>
+        <p class="report-left<%= reportLeft === 0 ? ' none' : '' %>">
+          <% if (reportLeft === 0) { %>오늘 신고 <%= reportLimit %>번을 모두 썼어요. 내일 0시에 다시 할 수 있어요.<% } else { %>오늘 남은 신고 <strong><%= reportLeft %></strong> / <%= reportLimit %>번<% } %>
+        </p>
+      <% } %>
+      <fieldset class="reason-list"<%= reportLeft === 0 ? ' disabled' : '' %>>
+        <legend class="sr-only">신고 이유</legend>
+        <% reasonOptions.forEach(function ([k, v], i) { %>
+          <label class="reason">
+            <input type="radio" name="reason" value="<%= k %>" <%= i === 0 ? 'required' : '' %>>
+            <span><%= v %></span>
+          </label>
+        <% }) %>
+      </fieldset>
+      <div class="report-detail">
+        <label for="report-detail" data-detail-label>자세한 내용 <span class="opt">(선택)</span></label>
+        <textarea id="report-detail" name="detail" rows="3" maxlength="500" placeholder="어떤 부분이 문제인지 알려주시면 더 빨리 확인할 수 있어요." data-detail<%= reportLeft === 0 ? ' disabled' : '' %>></textarea>
+        <span class="count"><span data-detail-count>0</span>/500</span>
+      </div>
+      <div class="sheet-actions">
+        <button type="button" class="btn-ghost-sm" data-report-close>취소</button>
+        <button type="submit" class="btn-danger" data-report-submit disabled>신고하기</button>
+      </div>
+    </form>
+  </dialog>
+<% } %>
+<%- include('partials/foot') %>

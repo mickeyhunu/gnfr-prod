@@ -1,0 +1,54 @@
+<%- include('partials/head', { title, bodyClass: 'white' }) %>
+<% const job = ad.kind === 'job'; %>
+<header class="bar">
+  <a href="<%= isOwner && ad.status !== 'approved' ? '/ads/mine' : '/ads' %>" class="icon-btn" aria-label="뒤로">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+  </a>
+  <span class="bar-title"><%= job ? '구인광고' : '광고' %></span>
+  <span class="icon-btn" aria-hidden="true"></span>
+</header>
+
+<main class="ad-detail">
+  <% if (ad.status !== 'approved') { %>
+    <p class="notice warn">공개되지 않은 광고예요. 등록한 분과 운영자만 볼 수 있어요.</p>
+  <% } %>
+  <div class="ad-meta">
+    <% if (job) { %><span class="kind-badge job">구인</span><% } %>
+    <span class="tag"><%= cat.name %></span>
+    <span class="ad-verified">국세청 <%= ad.nts_status || '사업자' %> 확인</span>
+    <% if (ad.has_license) { %><span class="ad-verified">허가증 확인</span><% } %>
+  </div>
+  <h1><%= ad.title %></h1>
+  <p class="ad-biz"><%= ad.business_name %></p>
+
+  <% if (job) { %>
+  <dl class="ad-info job-summary">
+    <% if (ad.employment_type) { %><div><dt>고용형태</dt><dd><%= empTypes[ad.employment_type] %></dd></div><% } %>
+    <div><dt>급여</dt><dd class="job-pay"><%= payText %></dd></div>
+    <% if (ad.job_role) { %><div><dt>모집 직무</dt><dd><%= ad.job_role %></dd></div><% } %>
+    <% if (ad.work_hours) { %><div><dt>근무 시간</dt><dd><%= ad.work_hours %></dd></div><% } %>
+    <div><dt>지원 자격</dt><dd>만 19세 이상</dd></div>
+    <% if (ad.address) { %><div><dt>근무 주소</dt><dd><%= ad.address %></dd></div><% } %>
+  </dl>
+  <% } %>
+
+  <%# bodyHtml 은 services/richtext 로 허용한 태그만 남긴 HTML %>
+  <div class="rich-body"><%- bodyHtml %></div>
+
+  <dl class="ad-info">
+    <% if (!job && ad.address) { %><div><dt>주소</dt><dd><%= ad.address %></dd></div><% } %>
+    <% if (ad.contact_name) { %><div><dt>담당자</dt><dd><%= ad.contact_name %></dd></div><% } %>
+    <div><dt>연락처</dt><dd><a href="tel:<%= ad.phone.replace(/[^0-9]/g, '') %>"><%= ad.phone %></a></dd></div>
+    <% if (ad.kakao_id) { %><div><dt>카카오톡</dt><dd><%= ad.kakao_id %></dd></div><% } %>
+    <% if (ad.line_id) { %><div><dt>라인</dt><dd><%= ad.line_id %></dd></div><% } %>
+    <% if (ad.wechat_id) { %><div><dt>위챗</dt><dd><%= ad.wechat_id %></dd></div><% } %>
+    <% if (ad.telegram_id) { %><div><dt>텔레그램</dt><dd><%= ad.telegram_id %></dd></div><% } %>
+    <% if (ad.link_url) { %>
+      <div><dt>링크</dt><dd><a href="<%= ad.link_url %>" target="_blank" rel="noopener noreferrer nofollow sponsored"><%= ad.link_url.replace(/^https?:\/\//, '') %></a></dd></div>
+    <% } %>
+    <div><dt>사업자번호</dt><dd><%= ad.b_no.slice(0, 3) %>-<%= ad.b_no.slice(3, 5) %>-<%= ad.b_no.slice(5) %></dd></div>
+  </dl>
+
+  <p class="fine">강남의숲은 광고 내용을 보증하지 않아요. 문제가 있는 광고는 운영자에게 알려주세요.</p>
+</main>
+<%- include('partials/foot') %>

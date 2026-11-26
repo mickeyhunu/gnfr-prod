@@ -1,0 +1,9 @@
+<%- include('partials/head', { title, bodyClass: 'start' }) %>
+<main class="auth-page auth-center">
+  <img class="auth-mark" src="/images/brand/logo.webp" width="1199" height="1312" alt="">
+  <h1>휴대폰 본인확인</h1>
+  <p class="auth-lead">본인확인 결과를 원래 화면으로 보냈어요.<br>창이 닫히지 않으면 아래 버튼을 눌러주세요.</p>
+  <a class="btn-primary" href="<%= target %>" data-kcp-close="<%= target %>">계속하기</a>
+</main>
+<script src="/js/kcp-close.js" defer></script>
+<%- include('partials/foot') %>

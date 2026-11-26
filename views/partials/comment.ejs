@@ -1,0 +1,37 @@
+<%# 댓글 하나 (답글도 같은 모양, reply 가 true 면 들여쓰기). 필요: c, reply, canReply %>
+<% const author = c.anon_no === 0; %>
+<div class="comment<%= reply ? ' reply' : '' %><%= c.replyTo ? ' reply-deep' : '' %><%= c.status === 'pending' ? ' pending' : '' %>" id="c<%= c.id %>">
+  <% if (reply) { %><span class="reply-mark" aria-hidden="true"></span><% } %>
+  <div class="comment-main">
+    <div class="comment-head">
+      <%- include('author-badge', { a: c.author }) %>
+      <strong class="<%= author ? 'author-name' : '' %>"><%= h.anonName(c.anon_no) %><%= c.mine ? ' (나)' : '' %></strong>
+      <span class="time"><%= h.timeAgo(c.created_at) %></span>
+      <% if (c.status === 'pending') { %><span class="tag">검토 중</span><% } %>
+    </div>
+    <p class="comment-text"><% if (c.replyTo) { %><% if (c.replyTo.onPage) { %><a class="mention" href="#c<%= c.replyTo.id %>" data-jump="c<%= c.replyTo.id %>">@<%= h.anonName(c.replyTo.anon_no) %></a><% } else { %><span class="mention gone">@<%= h.anonName(c.replyTo.anon_no) %></span><% } %> <% } %><%= c.body %></p>
+    <div class="comment-actions">
+      <% const lock = c.mine || c.status !== 'visible'; %>
+      <button type="button" class="vote-sm up<%= c.myVote === 1 ? ' on' : '' %>" data-vote="comment" data-id="<%= c.id %>" data-value="1" aria-pressed="<%= c.myVote === 1 %>" aria-label="추천" <%= lock ? 'disabled' : '' %>>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg>
+        <span data-count="up"><%= c.up_count %></span>
+      </button>
+      <button type="button" class="vote-sm down<%= c.myVote === -1 ? ' on' : '' %>" data-vote="comment" data-id="<%= c.id %>" data-value="-1" aria-pressed="<%= c.myVote === -1 %>" aria-label="반대" <%= lock ? 'disabled' : '' %>>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg>
+        <span data-count="down"><%= c.down_count %></span>
+      </button>
+      <% if (canReply && c.status === 'visible') { %>
+        <button type="button" class="btn-text" data-reply="<%= c.id %>" data-reply-name="<%= h.anonName(c.anon_no) %>">답글</button>
+      <% } %>
+      <% if (c.mine || isAdmin) { %>
+        <form method="post" action="/c/<%= c.id %>/delete" data-confirm="이 댓글을 삭제할까요?">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="btn-text">삭제</button>
+        </form>
+      <% } %>
+      <% if (!c.mine && c.status === 'visible') { %>
+        <button type="button" class="btn-text" data-report-open data-type="comment" data-id="<%= c.id %>">신고</button>
+      <% } %>
+    </div>
+  </div>
+</div>

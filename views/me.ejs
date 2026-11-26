@@ -1,0 +1,129 @@
+<%- include('partials/head', { title }) %>
+
+<main class="list">
+  <% if (notice) { %><p class="notice" role="status"><%= notice %></p><% } %>
+
+  <div class="section-head">
+    <h2 id="info-title">내 정보</h2>
+    <a href="/me/edit">정보 수정 ›</a>
+  </div>
+  <section class="info-box" aria-labelledby="info-title">
+    <div class="grade-box">
+      <div class="grade-now">
+        <%- include('partials/author-badge', { a: { rank: grade.rank } }) %>
+        <span class="grade-lv"><%= grade.rank.level === 'admin' ? '운영자' : 'Lv.' + grade.rank.level %></span>
+        <span class="grade-score">활동 점수 <b><%= grade.score.toLocaleString() %></b>점</span>
+      </div>
+      <% if (grade.next) { %>
+        <progress class="grade-bar" max="<%= grade.to - grade.from %>" value="<%= grade.score - grade.from %>" aria-label="다음 등급까지 진행"></progress>
+        <p class="grade-next">다음 등급 <b><%= grade.next.name %></b>(Lv.<%= grade.next.level %>)까지 <b><%= grade.next.left.toLocaleString() %>점</b> 남았어요.</p>
+      <% } else if (grade.rank.level !== 'admin') { %>
+        <p class="grade-next">가장 높은 등급이에요.</p>
+      <% } %>
+      <details class="grade-rules">
+        <summary>레벨 기준 보기</summary>
+        <p class="grade-how">활동 점수 = 글 <b><%= grade.points.post %>점</b> + 댓글 <b><%= grade.points.comment %>점</b> + 받은 추천 <b><%= grade.points.up %>점</b><br><small>지금 공개 중인 글·댓글만 셉니다. 지워지거나 숨겨지면 점수에서 빠져요.</small></p>
+        <table class="grade-table">
+          <thead><tr><th scope="col">레벨</th><th scope="col">등급</th><th scope="col">활동 점수</th></tr></thead>
+          <tbody>
+            <% grade.tiers.forEach(function (t) { const mine = grade.rank.level === t.level; %>
+              <tr class="<%= mine ? 'is-mine' : '' %>" <%- mine ? 'aria-current="true"' : '' %>>
+                <td>Lv.<%= t.level %></td>
+                <td><%- include('partials/author-badge', { a: { rank: { name: t.name, level: t.level, icon: t.icon } } }) %><% if (mine) { %> <small>내 등급</small><% } %></td>
+                <td><%= t.min.toLocaleString() %><%= t.max === null ? '점 이상' : ' ~ ' + t.max.toLocaleString() + '점' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <p class="grade-how"><small>운영자는 '<%= grade.adminName %>'으로 표시돼요.</small></p>
+      </details>
+    </div>
+    <dl class="info-list">
+      <div><dt>휴대폰 번호</dt><dd><%= info.phone || '등록된 번호 없음' %></dd></div>
+      <div><dt>성별</dt><dd><%= info.gender || '본인인증 전' %></dd></div>
+      <div><dt>본인인증</dt><dd><% if (info.verified) { %>완료<% } else if (kcpOn) { %><a class="tag-link" href="/kcp/start?purpose=verify" data-kcp-popup>본인인증하기</a><% } else { %>아직 안 했어요<% } %></dd></div>
+      <div><dt>가입일</dt><dd><%= info.joined %></dd></div>
+    </dl>
+  </section>
+
+  <div class="section-head" id="referral">
+    <h2 id="referral-title">추천인 코드</h2>
+  </div>
+  <section class="referral-box" aria-labelledby="referral-title">
+    <div class="my-code-row">
+      <p class="my-code-main">내 추천인 코드 <b><%= myCode %></b></p>
+      <button type="button" class="btn-sm" data-copy="<%= myCode %>" data-copy-done="코드를 복사했어요">코드 복사</button>
+    </div>
+    <div class="invite-link">
+      <label for="invite-url">초대 링크</label>
+      <div class="invite-row">
+        <input id="invite-url" value="<%= inviteUrl %>" readonly>
+        <button type="button" class="btn-sm" data-copy="<%= inviteUrl %>" data-copy-done="링크를 복사했어요">링크 복사</button>
+      </div>
+      <button type="button" class="btn-text invite-share" data-invite-share="<%= inviteUrl %>" hidden>다른 앱으로 공유하기</button>
+    </div>
+    <p class="hint invite-help">강남의숲은 추천인코드를 통해서만 가입 가능합니다.</p>
+    <p class="copy-status" role="status" aria-live="polite" data-copy-status></p>
+    <div class="referral-joined">
+      <% if (user.referrer_code) { %>
+        <p>가입할 때 넣은 코드 <b><%= user.referrer_code %></b><% if (viaMaster) { %> <small>(오픈 초대 코드)</small><% } %></p>
+      <% } else { %>
+        <p>추천인 코드 없이 가입한 계정이에요. 추천인 코드를 등록해야 글, 댓글, 추천을 할 수 있어요.</p>
+        <form method="post" action="/me/referral" class="referral-form">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <label for="referral" class="sr-only">추천인 코드</label>
+          <input id="referral" name="referral" maxlength="20" placeholder="추천인 코드 입력" autocomplete="off" autocapitalize="characters" required>
+          <button type="submit" class="btn-sm">등록</button>
+        </form>
+        <% if (referralError) { %><p class="error" role="alert"><%= referralError %></p><% } %>
+      <% } %>
+    </div>
+  </section>
+
+  <div class="section-head">
+    <h2>활동내역</h2>
+  </div>
+  <ul class="menu-list">
+    <% tabs.forEach(function (t) { %>
+      <li><a href="/me/activity?tab=<%= t.key %>"><%= t.label %> <small><%= counts[t.key] %> ›</small></a></li>
+    <% }) %>
+  </ul>
+
+  <div class="section-head">
+    <h2>광고</h2>
+  </div>
+  <ul class="menu-list">
+    <li><a href="/ads/new">광고 신청 <small>›</small></a></li>
+    <li><a href="/ads/mine">내 광고 <small><% if (adCounts.live || adCounts.pending) { %><%= [adCounts.live ? '게시 중 ' + adCounts.live : '', adCounts.pending ? '심사 중 ' + adCounts.pending : ''].filter(Boolean).join(' · ') %><% } else { %><%= adCounts.total %><% } %> ›</small></a></li>
+  </ul>
+
+  <div class="section-head">
+    <h2>고객센터</h2>
+  </div>
+  <ul class="menu-list">
+    <li><a href="/me/inquiries/new">1:1 문의하기 <small>›</small></a></li>
+    <li><a href="/me/inquiries">문의내역 <small><% if (support.fresh) { %><span class="tag-warn">새 답변 <%= support.fresh %></span> <% } else if (support.open) { %>답변 대기 <%= support.open %> <% } else { %><%= support.inquiries %> <% } %>›</small></a></li>
+    <li><a href="/me/reports">신고 내역 <small><%= support.reports %> ›</small></a></li>
+  </ul>
+
+  <div class="section-head">
+    <h2>설정</h2>
+  </div>
+  <ul class="menu-list">
+    <li><a href="/rules">운영 규칙 <small>›</small></a></li>
+    <% if (user.role === 'admin') { %>
+      <li><a href="/admin">관리자 화면 <small>›</small></a></li>
+    <% } %>
+    <li>
+      <form method="post" action="/logout">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button type="submit" class="danger">로그아웃</button>
+      </form>
+    </li>
+  </ul>
+
+  <% if (!user.has_password) { %>
+    <p class="account-note">예전 방식(번호·비밀번호 없이)으로 만든 계정이에요. 정보 수정에서 비밀번호를 정해두면 다른 기기에서도 들어올 수 있어요.</p>
+  <% } %>
+</main>
+<%- include('partials/foot') %>

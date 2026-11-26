@@ -1,0 +1,8 @@
+<header class="top">
+  <div class="top-row">
+    <nav class="chips" aria-label="고객센터">
+      <a href="/me/inquiries" class="chip<%= tab === 'inquiries' ? ' on' : '' %>" <%- tab === 'inquiries' ? 'aria-current="page"' : '' %>>문의내역 <span class="chip-count"><%= counts.inquiries %></span></a>
+      <a href="/me/reports" class="chip<%= tab === 'reports' ? ' on' : '' %>" <%- tab === 'reports' ? 'aria-current="page"' : '' %>>신고 내역 <span class="chip-count"><%= counts.reports %></span></a>
+    </nav>
+  </div>
+</header>

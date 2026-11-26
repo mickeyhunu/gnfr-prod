@@ -1,0 +1,61 @@
+<%- include('partials/head', { title }) %>
+<header class="top">
+  <div class="top-row">
+  <nav class="chips" aria-label="광고 종류">
+    <a href="/ads" class="chip<%= !cat ? ' on' : '' %>" <%- !cat ? 'aria-current="page"' : '' %>>전체</a>
+    <a href="/ads?cat=job" class="chip<%= cat === 'job' ? ' on' : '' %>" <%- cat === 'job' ? 'aria-current="page"' : '' %>>구인구직</a>
+    <% categories.forEach(function (c) { %>
+      <a href="/ads?cat=<%= c.key %>" class="chip<%= cat === c.key ? ' on' : '' %>" <%- cat === c.key ? 'aria-current="page"' : '' %>><%= c.name %></a>
+    <% }) %>
+  </nav>
+  </div>
+</header>
+
+<main class="list">
+  <% if (notice) { %><p class="notice" role="status"><%= notice %></p><% } %>
+
+  <section class="ad-intro">
+    <strong>강남의숲 구인·광고</strong>
+    <p>국세청에서 영업 중인 사업자로 확인된 업체만 올릴 수 있어요. 구인은 19세 이상만 뽑고, 급여와 근무 시간이 적힌 글만 올라와요.</p>
+    <p class="ad-banned-line">선불금(마이킹)·성매매 암시, 소개소·스카우트, 대출·사채는 받지 않아요.</p>
+    <div class="ad-intro-actions">
+      <a href="/ads/new" class="btn-pill">광고 등록하기</a>
+      <% if (myCount) { %><a href="/ads/mine" class="link-sm">내 광고 <%= myCount %></a><% } %>
+    </div>
+  </section>
+
+  <% if (!list.length) { %>
+    <p class="empty"><%= cat === 'job' ? '아직 올라온 구인구직 광고가 없어요.' : cat ? '이 업종에는 아직 올라온 글이 없어요.' : '아직 올라온 광고가 없어요.' %></p>
+  <% } %>
+
+  <div class="ad-list">
+    <% list.forEach(function (a) { const job = a.kind === 'job'; %>
+      <a href="/ads/<%= a.id %>" class="ad-card<%= job ? ' job' : '' %>">
+        <div class="ad-meta">
+          <% if (job) { %><span class="kind-badge job">구인</span><% } %>
+          <span class="tag"><%= catName(a.category) %></span>
+          <span class="ad-verified">사업자 확인</span>
+          <% if (a.has_license) { %><span class="ad-verified">허가증 확인</span><% } %>
+        </div>
+        <strong class="ad-title"><%= a.title %></strong>
+        <span class="ad-biz"><%= a.business_name %></span>
+        <% if (job) { %>
+          <div class="job-facts"><% if (a.employment_type) { %><span class="job-role"><%= empTypes[a.employment_type] %></span><% } %><span class="job-pay"><%= payText(a) %></span><% if (a.job_role) { %><span><%= a.job_role %></span><% } %><% if (a.work_hours) { %><span><%= a.work_hours %></span><% } %></div>
+        <% } else { %>
+          <p class="ad-preview"><%= a.preview %></p>
+        <% } %>
+        <% if (a.address) { %><span class="ad-addr"><%= a.address %></span><% } %>
+      </a>
+    <% }) %>
+  </div>
+
+  <% if (page > 1 || hasNext) { %>
+    <nav class="pager" aria-label="페이지">
+      <% const q = (n) => '/ads?' + [cat ? 'cat=' + cat : '', 'page=' + n].filter(Boolean).join('&'); %>
+      <% if (page > 1) { %><a href="<%= q(page - 1) %>">이전</a><% } else { %><span></span><% } %>
+      <span><%= page %>쪽</span>
+      <% if (hasNext) { %><a href="<%= q(page + 1) %>">다음</a><% } else { %><span></span><% } %>
+    </nav>
+  <% } %>
+</main>
+<%- include('partials/foot') %>

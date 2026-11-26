@@ -1,0 +1,39 @@
+<%- include('../partials/admin-top', { title, adminTab }) %>
+  <section>
+    <div class="admin-head-row">
+      <h2>1:1 문의</h2>
+      <nav class="admin-seg" aria-label="문의 보기">
+        <a href="/admin/inquiries" class="<%= show === 'open' ? 'on' : '' %>" <%- show === 'open' ? 'aria-current="page"' : '' %>>답변 대기</a>
+        <a href="/admin/inquiries?show=answered" class="<%= show === 'answered' ? 'on' : '' %>" <%- show === 'answered' ? 'aria-current="page"' : '' %>>답변 완료</a>
+      </nav>
+    </div>
+    <% if (!inquiries.length) { %><p class="empty-sm"><%= show === 'open' ? '답변을 기다리는 문의가 없어요.' : '답변한 문의가 없어요.' %></p><% } %>
+    <div class="admin-list">
+      <% inquiries.forEach(function (q) { %>
+        <details class="admin-row admin-inquiry">
+          <summary>
+            <span class="tag<%= q.status === 'open' ? ' warn' : ' muted' %>"><%= inquiryCats[q.category] || '기타' %></span>
+            <span class="admin-row-title"><%= q.title %></span>
+            <span class="admin-row-side"><%= h.timeAgo(q.status === 'open' ? q.created_at : q.answered_at) %></span>
+          </summary>
+          <div class="admin-row-body">
+            <div class="meta">
+              <span><%= q.status === 'open' ? '답변 대기' : '답변 완료' %></span>
+              <span>문의 <%= h.timeAgo(q.created_at) %></span>
+              <a href="/admin/users?q=%23<%= q.user_id %>">회원 #<%= q.user_id %></a>
+            </div>
+            <div class="ticket-body"><%= q.body %></div>
+            <form method="post" action="/admin/inquiries/<%= q.id %>/answer">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="hidden" name="back" value="/admin/inquiries<%= show === 'answered' ? '?show=answered' : '' %>">
+              <label class="sr-only" for="ans-<%= q.id %>">답변</label>
+              <textarea id="ans-<%= q.id %>" name="answer" maxlength="4000" placeholder="답변을 입력해주세요" required><%= q.answer || '' %></textarea>
+              <button type="submit" class="btn-sm"><%= q.status === 'open' ? '답변 보내기' : '답변 고치기' %></button>
+            </form>
+          </div>
+        </details>
+      <% }) %>
+    </div>
+  </section>
+</main>
+<%- include('../partials/foot') %>

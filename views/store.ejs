@@ -1,0 +1,29 @@
+<%- include('partials/head', { title }) %>
+<main class="list">
+  <p class="back-link"><a href="/live">‹ 실시간강남</a></p>
+
+  <section class="info-box store-hero">
+    <span class="store-thumb big" aria-hidden="true"><span class="store-emoji"><%= store.emoji || '🏙️' %></span></span>
+    <div class="store-hero-text">
+      <h1 class="store-name"><span class="store-region">[<%= store.region %>]</span> <%= store.name %></h1>
+      <span class="store-cat"><%= store.category %></span>
+      <% if (store.intro) { %><p class="store-intro"><%= store.intro %></p><% } %>
+    </div>
+  </section>
+
+  <div class="section-head">
+    <h2>가게 정보</h2>
+  </div>
+  <section class="info-box">
+    <dl class="info-list">
+      <div><dt>지역</dt><dd><%= store.region %></dd></div>
+      <div><dt>동</dt><dd><%= store.dong || '정보 없음' %></dd></div>
+      <div><dt>업종</dt><dd><%= store.category %></dd></div>
+      <div><dt>영업시간</dt><dd><%= store.hours || '정보 없음' %></dd></div>
+      <div><dt>상세주소</dt><dd><%= store.address %></dd></div>
+      <% if (store.phone) { %><div><dt>전화</dt><dd><a href="tel:<%= store.phone.replace(/[^0-9+]/g, '') %>"><%= store.phone %></a></dd></div><% } %>
+    </dl>
+    <a class="btn-sm store-map" href="<%= mapUrl %>" target="_blank" rel="noopener noreferrer">네이버 지도에서 보기</a>
+  </section>
+</main>
+<%- include('partials/foot') %>

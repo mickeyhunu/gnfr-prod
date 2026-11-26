@@ -1,0 +1,29 @@
+<%- include('partials/head', { title }) %>
+<%- include('partials/support-tabs', { tab, counts }) %>
+<main class="list">
+  <div class="mine-head">
+    <p class="back-link"><a href="/me">‹ 마이페이지</a></p>
+    <a href="/me/inquiries/new" class="btn-pill">1:1 문의하기</a>
+  </div>
+
+  <% if (!list.length) { %>
+    <p class="empty">아직 문의한 내역이 없어요.</p>
+  <% } else { %>
+    <ul class="my-comments">
+      <% list.forEach(function (q) { const fresh = q.status === 'answered' && !q.user_seen; %>
+        <li>
+          <a class="my-comment" href="/me/inquiries/<%= q.id %>">
+            <p class="ticket-title"><%= q.title %></p>
+            <p class="my-comment-meta">
+              <span class="ticket-state <%= q.status %>"><%= q.status === 'answered' ? '답변 완료' : '답변 대기' %></span>
+              <% if (fresh) { %><span class="tag-warn">새 답변</span><% } %>
+              <span><%= cats[q.category] || '기타' %></span>
+              <span><%= h.timeAgo(q.created_at) %></span>
+            </p>
+          </a>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</main>
+<%- include('partials/foot') %>

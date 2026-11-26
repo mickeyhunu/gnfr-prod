@@ -1,0 +1,28 @@
+<%- include('partials/head', { title, bodyClass: 'start' }) %>
+<main class="auth-page auth-center">
+  <img class="auth-mark" src="/images/brand/logo.webp" width="1199" height="1312" alt="">
+  <h1><%= idMode ? '관리자 로그인' : '로그인' %></h1>
+
+  <form class="auth-form" method="post" action="/auth/login" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <% if (idMode) { %>
+    <input name="login_id" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30" placeholder="아이디" aria-label="아이디" value="<%= phone %>" required>
+    <% } else { %>
+    <input name="phone" type="tel" inputmode="tel" autocomplete="username" placeholder="휴대폰 번호" aria-label="휴대폰 번호" value="<%= phone %>" required>
+    <% } %>
+    <input name="password" type="password" autocomplete="current-password" placeholder="비밀번호" aria-label="비밀번호" required>
+
+    <label class="check">
+      <input type="checkbox" name="remember" value="yes" <%= remember ? 'checked' : '' %>>
+      <span>자동 로그인 <small>(공용 PC에서는 꺼 주세요)</small></span>
+    </label>
+
+    <% if (error) { %><p class="error" role="alert"><%= error %></p><% } %>
+
+    <button type="submit" class="btn-primary">로그인</button>
+    <% if (!idMode) { %><p class="auth-links"><a href="/reset">비밀번호를 잊으셨나요?</a></p><% } %>
+  </form>
+
+  <% if (!idMode) { %><p class="auth-switch">처음이신가요? <a href="/signup">19세 인증으로 가입하기</a></p><% } %>
+</main>
+<%- include('partials/foot') %>

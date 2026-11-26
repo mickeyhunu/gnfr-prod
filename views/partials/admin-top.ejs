@@ -1,0 +1,31 @@
+<%- include('head', { title, bodyClass: 'white admin' }) %>
+<%
+  const pending = locals.pending || {};
+  const adminTabs = [
+    { key: 'home', href: '/admin', label: '대시보드' },
+    { key: 'review', href: '/admin/review', label: '검토·신고', n: pending.review },
+    { key: 'posts', href: '/admin/posts', label: '게시글' },
+    { key: 'ads', href: '/admin/ads', label: '광고', n: pending.ads },
+    { key: 'inquiries', href: '/admin/inquiries', label: '문의', n: pending.inquiries },
+    { key: 'stores', href: '/admin/stores', label: '가게' },
+    { key: 'users', href: '/admin/users', label: '회원' },
+  ];
+%>
+<header class="bar">
+  <a href="/" class="icon-btn" aria-label="사이트로 돌아가기">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+  </a>
+  <span class="bar-title">관리자</span>
+  <span class="icon-btn" aria-hidden="true"></span>
+</header>
+<header class="top admin-tabs">
+  <div class="top-row">
+    <nav class="chips" aria-label="관리 메뉴">
+      <% adminTabs.forEach(function (t) { const on = adminTab === t.key; %>
+        <a href="<%= t.href %>" class="chip<%= on ? ' on' : '' %>" <%- on ? 'aria-current="page"' : '' %>><%= t.label %><% if (t.n) { %> <span class="chip-badge"><%= t.n %></span><% } %></a>
+      <% }) %>
+    </nav>
+  </div>
+</header>
+<main class="admin-wrap">
+  <% if (locals.notice) { %><p class="notice" role="status"><%= notice %></p><% } %>

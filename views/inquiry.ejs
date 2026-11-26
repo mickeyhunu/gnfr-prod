@@ -1,0 +1,25 @@
+<%- include('partials/head', { title }) %>
+<main class="list">
+  <p class="back-link"><a href="/me/inquiries">‹ 문의내역</a></p>
+  <% if (sent) { %><p class="notice" role="status">문의를 보냈어요. 답변이 오면 마이페이지와 문의내역에서 볼 수 있어요.</p><% } %>
+
+  <article class="info-box ticket">
+    <p class="my-comment-meta">
+      <span class="ticket-state <%= q.status %>"><%= q.status === 'answered' ? '답변 완료' : '답변 대기' %></span>
+      <span><%= cats[q.category] || '기타' %></span>
+      <span><%= h.timeAgo(q.created_at) %></span>
+    </p>
+    <h2 class="ticket-head"><%= q.title %></h2>
+    <div class="ticket-body"><%= q.body %></div>
+  </article>
+
+  <% if (q.status === 'answered') { %>
+    <section class="info-box ticket answer" aria-labelledby="answer-title">
+      <p class="my-comment-meta"><span id="answer-title" class="ticket-from">강남의숲 운영팀 답변</span><span><%= h.timeAgo(q.answered_at) %></span></p>
+      <div class="ticket-body"><%= q.answer %></div>
+    </section>
+  <% } else { %>
+    <p class="hint ticket-wait">운영팀이 확인하고 답변을 드릴게요.</p>
+  <% } %>
+</main>
+<%- include('partials/foot') %>

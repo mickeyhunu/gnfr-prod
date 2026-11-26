@@ -1,0 +1,231 @@
+<%- include('partials/head', { title, bodyClass: 'white' }) %>
+<%
+  // 입력칸 아래 오류 문구 (errorField 가 그 칸일 때만)
+  const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const fieldErr = (name) => (error && errorField === name) ? '<p class="error field-error" id="err-' + name + '" role="alert">' + esc(error) + '</p>' : '';
+  const inv = (name) => (error && errorField === name) ? 'aria-invalid="true" aria-describedby="err-' + name + '"' : '';
+  const fmtBizNo = (n) => { const d = String(n || '').replace(/[^0-9]/g, ''); return d.length === 10 ? d.slice(0, 3) + '-' + d.slice(3, 5) + '-' + d.slice(5) : d; };
+  const fileAccept = 'image/jpeg,image/png,image/webp,application/pdf';
+%>
+<header class="bar">
+  <a href="/ads" class="icon-btn" aria-label="목록으로">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+  </a>
+  <span class="bar-title">광고 등록</span>
+  <span class="icon-btn" aria-hidden="true"></span>
+</header>
+
+<main class="ad-form-wrap">
+  <ol class="ad-steps" aria-label="등록 단계">
+    <li class="<%= step === 1 ? 'on' : 'done' %>" <%- step === 1 ? 'aria-current="step"' : '' %>><b>1</b>사업자 확인</li>
+    <li class="<%= step === 2 ? 'on' : '' %>" <%- step === 2 ? 'aria-current="step"' : '' %>><b>2</b>광고 작성</li>
+  </ol>
+
+  <% if (error && !errorField) { %><p class="error" role="alert"><%= error %></p><% } %>
+
+  <% if (step === 1) { %>
+  <% const picked = categories.find(function (c) { return c.key === bizForm.category; }) || {}; %>
+  <form method="post" action="/ads/new/biz" enctype="multipart/form-data" class="ad-form" data-ad-form data-biz-form>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <fieldset>
+      <legend>사업자 정보</legend>
+      <label for="business_name">상호</label>
+      <input id="business_name" name="business_name" maxlength="60" placeholder="사업자등록증에 적힌 상호" value="<%= bizForm.business_name || '' %>" required <%- inv('business_name') %>>
+      <%- fieldErr('business_name') %>
+      <label for="b_no">사업자등록번호</label>
+      <div class="bizno-row">
+        <input id="b_no" name="b_no" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="000-00-00000" value="<%= fmtBizNo(bizForm.b_no) %>" required data-bizno <%- inv('b_no') %>>
+        <button type="button" class="btn-sm" data-bizno-check <%= ntsReady ? '' : 'disabled' %>>조회</button>
+      </div>
+      <p class="bizno-result" data-bizno-result role="status" aria-live="polite"></p>
+      <%- fieldErr('b_no') %>
+      <label>업종</label>
+      <div class="chips wrap">
+        <% categories.forEach(function (c) { %>
+          <label class="chip-radio">
+            <input type="radio" name="category" value="<%= c.key %>" data-license="<%= c.license || '' %>" <%= bizForm.category === c.key ? 'checked' : '' %> required>
+            <span><%= c.name %></span>
+          </label>
+        <% }) %>
+      </div>
+      <%- fieldErr('category') %>
+    </fieldset>
+
+    <fieldset class="docs">
+      <legend>서류 첨부</legend>
+      <p class="hint">JPG, PNG, WEBP 사진이나 PDF, 파일마다 <%= maxMb %>MB 이하. 운영자만 보고 광고에는 나오지 않아요.</p>
+      <div class="doc-grid">
+        <div class="doc-box">
+          <div class="doc-tile" data-doc-tile>
+            <input id="biz_cert" name="biz_cert" type="file" accept="<%= fileAccept %>" required aria-describedby="doc-help-biz" <%- inv('biz_cert') %>>
+            <span class="doc-empty"><svg class="doc-cam" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3H9Zm3 4.5a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z"/></svg></span>
+            <span class="doc-preview" data-doc-preview hidden></span>
+          </div>
+          <label for="biz_cert" class="doc-name">사업자등록증 <b class="req">필수</b></label>
+        </div>
+        <div class="doc-box" data-license-box>
+          <div class="doc-tile" data-doc-tile>
+            <input id="license" name="license" type="file" accept="<%= fileAccept %>" aria-describedby="doc-help-license" <%= picked.license ? 'required' : '' %> <%- inv('license') %>>
+            <span class="doc-empty"><svg class="doc-cam" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3H9Zm3 4.5a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z"/></svg></span>
+            <span class="doc-preview" data-doc-preview hidden></span>
+          </div>
+          <label for="license" class="doc-name">영업허가증 <b class="req" data-license-req <%= picked.license ? '' : 'hidden' %>>필수</b><span class="opt" data-license-opt <%= picked.license ? 'hidden' : '' %>>선택</span></label>
+        </div>
+        <div class="doc-box">
+          <div class="doc-tile" data-doc-tile>
+            <input id="etc_files" name="etc_files" type="file" multiple accept="<%= fileAccept %>" data-max-files="<%= etcMax %>" aria-describedby="doc-help-etc" <%- inv('etc_files') %>>
+            <span class="doc-empty"><svg class="doc-cam" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3H9Zm3 4.5a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z"/></svg></span>
+            <span class="doc-preview" data-doc-preview hidden></span>
+          </div>
+          <label for="etc_files" class="doc-name">기타 서류 <span class="opt">선택</span></label>
+        </div>
+      </div>
+      <%- fieldErr('biz_cert') %><%- fieldErr('license') %><%- fieldErr('etc_files') %>
+      <ul class="doc-help">
+        <li id="doc-help-biz"><b>사업자등록증</b> 위에 적은 사업자등록번호와 같은 것</li>
+        <li id="doc-help-license"><b>영업허가증·신고증</b> <span data-license-name><%= picked.license ? picked.license + '을(를) 올려주세요.' : '허가·신고가 필요한 업종이면 올려주세요.' %></span></li>
+        <li id="doc-help-etc"><b>기타 서류</b> <%= etcMax %>개까지. 의료광고 심의필증, 자격증, 임대차계약서처럼 확인에 도움이 되는 서류</li>
+      </ul>
+    </fieldset>
+
+    <div class="ad-banned">
+      <strong>받지 않는 광고</strong>
+      <ul><% banned.forEach(function (b) { %><li><%= b %></li><% }) %></ul>
+    </div>
+    <button type="submit" class="btn-primary" <%= ntsReady ? '' : 'disabled' %>>다음: 광고 작성</button>
+  </form>
+
+  <% } else { %>
+  <section class="biz-ok" aria-label="확인된 사업자">
+    <div>
+      <span class="ad-verified">국세청 <%= draft.nts_status || '계속사업자' %> 확인</span>
+      <strong><%= draft.business_name %></strong>
+      <span><%= fmtBizNo(draft.b_no) %> · <%= catName(draft.category) %></span>
+      <span>서류: <%= Object.keys(docs).map(function (k) { return docLabel[k] + (docs[k] > 1 ? ' ' + docs[k] + '개' : ''); }).join(', ') %></span>
+    </div>
+    <a href="/ads/new?reset=1" class="link-sm">다시 입력</a>
+  </section>
+
+  <form method="post" action="/ads/new" class="ad-form" data-ad-write>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <fieldset>
+      <legend>광고 종류</legend>
+      <div class="chips wrap">
+        <label class="chip-radio"><input type="radio" name="kind" value="job" <%= form.kind !== 'ad' ? 'checked' : '' %>><span>구인광고</span></label>
+        <label class="chip-radio"><input type="radio" name="kind" value="ad" <%= form.kind === 'ad' ? 'checked' : '' %>><span>기타광고</span></label>
+      </div>
+      <p class="hint">사람을 뽑는 광고는 구인광고, 그 밖의 업장 홍보는 기타광고로 골라주세요.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>광고 내용</legend>
+      <label for="title">제목 <b class="req">필수</b></label>
+      <input id="title" name="title" maxlength="60" placeholder="제목을 입력해 주세요" value="<%= form.title || '' %>" required <%- inv('title') %>>
+      <%- fieldErr('title') %>
+      <label id="body-label" for="body_html">내용 <b class="req">필수</b></label>
+      <div class="editor" data-editor data-image-max="<%= imageMax %>">
+        <div class="editor-toolbar" role="toolbar" aria-label="글꼴 도구" hidden>
+          <button type="button" data-cmd="bold" aria-label="굵게" title="굵게"><b>B</b></button>
+          <button type="button" data-cmd="italic" aria-label="기울임" title="기울임"><i>I</i></button>
+          <button type="button" data-cmd="underline" aria-label="밑줄" title="밑줄"><u>U</u></button>
+          <button type="button" data-cmd="strikeThrough" aria-label="취소선" title="취소선"><s>S</s></button>
+          <span class="sep" aria-hidden="true"></span>
+          <button type="button" data-block="h2" aria-label="큰 제목" title="큰 제목">H2</button>
+          <button type="button" data-block="h3" aria-label="작은 제목" title="작은 제목">H3</button>
+          <button type="button" data-block="p" aria-label="본문" title="본문">¶</button>
+          <button type="button" data-block="blockquote" aria-label="인용" title="인용">❝</button>
+          <span class="sep" aria-hidden="true"></span>
+          <button type="button" data-cmd="insertUnorderedList" aria-label="글머리 목록" title="글머리 목록">•≡</button>
+          <button type="button" data-cmd="insertOrderedList" aria-label="번호 목록" title="번호 목록">1.</button>
+          <button type="button" data-cmd="insertHorizontalRule" aria-label="구분선" title="구분선">―</button>
+          <span class="sep" aria-hidden="true"></span>
+          <button type="button" data-align="left" aria-label="왼쪽 정렬" title="왼쪽 정렬">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg>
+          </button>
+          <button type="button" data-align="center" aria-label="가운데 정렬" title="가운데 정렬">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 10h10M4 14h16M7 18h10"/></svg>
+          </button>
+          <button type="button" data-align="right" aria-label="오른쪽 정렬" title="오른쪽 정렬">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M10 10h10M4 14h16M10 18h10"/></svg>
+          </button>
+          <span class="sep" aria-hidden="true"></span>
+          <button type="button" data-palette="fc" aria-label="글씨 색" title="글씨 색" aria-expanded="false"><span class="tool-fc">가</span></button>
+          <button type="button" data-palette="bg" aria-label="글씨 배경색" title="글씨 배경색" aria-expanded="false"><span class="tool-bg">가</span></button>
+          <span class="sep" aria-hidden="true"></span>
+          <button type="button" data-image aria-label="사진 넣기" title="사진">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 17-5-5-9 8"/></svg>
+          </button>
+          <input type="file" accept="image/jpeg,image/png,image/webp" data-image-input hidden>
+          <div class="editor-palette" data-palette-box="fc" role="group" aria-label="글씨 색 고르기" hidden>
+            <% textColors.forEach(function (c) { %><button type="button" class="swatch" data-color="fc-<%= c.key %>" aria-label="<%= c.name %>" title="<%= c.name %>"><span class="fc-<%= c.key %>">가</span></button><% }) %>
+          </div>
+          <div class="editor-palette" data-palette-box="bg" role="group" aria-label="글씨 배경색 고르기" hidden>
+            <% bgColors.forEach(function (c) { %><button type="button" class="swatch" data-color="bg-<%= c.key %>" aria-label="<%= c.name %>" title="<%= c.name %>"><span class="bg-<%= c.key %>">가</span></button><% }) %>
+          </div>
+        </div>
+        <div class="editor-area" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="body-label" data-placeholder="내용을 입력해주세요" hidden <%- inv('body_html') %>><%- form.body_html || '' %></div>
+        <textarea id="body_html" name="body_html" rows="8" placeholder="내용을 입력해주세요" <%- inv('body_html') %>><%= form.body_html || '' %></textarea>
+        <p class="editor-status" data-editor-status role="status" aria-live="polite"></p>
+      </div>
+      <%- fieldErr('body_html') %>
+    </fieldset>
+
+    <fieldset data-job-fields>
+      <legend>구인 조건</legend>
+      <label>고용형태 <b class="req">필수</b></label>
+      <div class="chips wrap">
+        <% Object.keys(empTypes).forEach(function (k) { %>
+          <label class="chip-radio"><input type="radio" name="employment_type" value="<%= k %>" <%= form.employment_type === k ? 'checked' : '' %>><span><%= empTypes[k] %></span></label>
+        <% }) %>
+      </div>
+      <%- fieldErr('employment_type') %>
+      <label for="pay_amount">급여조건 <b class="req">필수</b></label>
+      <div class="pay-row">
+        <select name="pay_type" aria-label="급여 방식">
+          <option value="">방식</option>
+          <% Object.keys(payTypes).forEach(function (k) { %><option value="<%= k %>" <%= form.pay_type === k ? 'selected' : '' %>><%= payTypes[k] %></option><% }) %>
+        </select>
+        <input id="pay_amount" name="pay_amount" inputmode="numeric" maxlength="11" placeholder="숫자만, 원 단위" value="<%= form.pay_amount || '' %>" <%- inv('pay') %>>
+      </div>
+      <p class="hint">시급은 최저임금 <%= minWage.toLocaleString('ko-KR') %>원 이상이어야 해요.</p>
+      <%- fieldErr('pay') %>
+      <label for="job_role">모집 직무 <span class="opt">선택</span></label>
+      <input id="job_role" name="job_role" maxlength="40" placeholder="직무를 입력해 주세요" value="<%= form.job_role || '' %>">
+      <label for="work_hours">근무 시간 <span class="opt">선택</span></label>
+      <input id="work_hours" name="work_hours" maxlength="60" placeholder="예) 20:00~03:00, 주 5일" value="<%= form.work_hours || '' %>">
+      <label for="address">근무 주소 <b class="req">필수</b></label>
+      <input id="address" name="address" maxlength="200" placeholder="서울 강남구 …" value="<%= form.address || '' %>" <%- inv('address') %>>
+      <%- fieldErr('address') %>
+    </fieldset>
+
+    <fieldset>
+      <legend>담당자</legend>
+      <label for="contact_name">담당자 <b class="req">필수</b></label>
+      <input id="contact_name" name="contact_name" maxlength="30" placeholder="예) 김실장" value="<%= form.contact_name || '' %>" required <%- inv('contact_name') %>>
+      <%- fieldErr('contact_name') %>
+      <label for="phone">담당자 연락처 <b class="req">필수</b></label>
+      <input id="phone" name="phone" type="tel" maxlength="20" placeholder="010-1234-5678" value="<%= form.phone || '' %>" required <%- inv('phone') %>>
+      <%- fieldErr('phone') %>
+      <div class="messenger-grid">
+        <div><label for="kakao_id">카카오톡 ID <span class="opt">선택</span></label><input id="kakao_id" name="kakao_id" maxlength="50" value="<%= form.kakao_id || '' %>"></div>
+        <div><label for="line_id">라인 ID <span class="opt">선택</span></label><input id="line_id" name="line_id" maxlength="50" value="<%= form.line_id || '' %>"></div>
+        <div><label for="wechat_id">위챗 ID <span class="opt">선택</span></label><input id="wechat_id" name="wechat_id" maxlength="50" value="<%= form.wechat_id || '' %>"></div>
+        <div><label for="telegram_id">텔레그램 ID <span class="opt">선택</span></label><input id="telegram_id" name="telegram_id" maxlength="50" value="<%= form.telegram_id || '' %>"></div>
+      </div>
+    </fieldset>
+
+    <label class="check">
+      <input type="checkbox" name="agree" value="1" <%= form.agree ? 'checked' : '' %> required>
+      <span <%- inv('agree') %>>광고 내용과 첨부한 서류가 사실이고 받지 않는 광고에 해당하지 않아요. 구인광고면 저희가 직접 뽑으며 19세 미만은 뽑지 않고 선불금·성매매 조건이 없어요. 사실과 다르거나 휴업·폐업하면 광고가 내려가는 것에 동의해요.</span>
+    </label>
+    <%- fieldErr('agree') %>
+
+    <button type="submit" class="btn-primary">광고 등록하기</button>
+    <p class="fine">운영자가 확인한 뒤 올라가요. 게시 중에도 국세청 사업자 상태를 주기적으로 다시 확인해요.</p>
+  </form>
+  <script src="/js/editor.js" defer></script>
+  <% } %>
+</main>
+<%- include('partials/foot') %>

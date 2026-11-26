@@ -1,0 +1,32 @@
+<%- include('partials/head', { title }) %>
+
+<main class="list">
+  <section class="welcome">
+    <strong>오늘 강남은 어땠나요?</strong>
+    <span>글과 댓글은 모두 익명으로 올라가요. 특정인을 알아볼 수 있는 이야기는 피해주세요.</span>
+    <a href="/write">글쓰기</a>
+  </section>
+
+  <div class="section-head">
+    <h2>요즘 인기 글</h2>
+    <a href="/forest?tab=hot">핫 게시판</a>
+  </div>
+  <% if (!hot.length) { %>
+    <p class="empty-sm">최근 <%= hotDays %>일 동안 추천받은 글이 아직 없어요.</p>
+  <% } %>
+  <% hot.forEach(function (p, i) { %>
+    <%- include('partials/post-card', { p, rank: i + 1 }) %>
+  <% }) %>
+
+  <div class="section-head">
+    <h2>방금 올라온 글</h2>
+    <a href="/forest">전체 보기</a>
+  </div>
+  <% if (!latest.length) { %>
+    <p class="empty-sm">아직 글이 없어요. 첫 글을 남겨보세요.</p>
+  <% } %>
+  <% latest.forEach(function (p) { %>
+    <%- include('partials/post-card', { p, rank: null }) %>
+  <% }) %>
+</main>
+<%- include('partials/foot') %>

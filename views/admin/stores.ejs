@@ -1,0 +1,40 @@
+<%- include('../partials/admin-top', { title, adminTab }) %>
+  <div class="admin-head-row">
+    <h2>가게 (실시간강남)</h2>
+    <a href="/admin/stores/new" class="btn-pill">가게 추가</a>
+  </div>
+  <p class="hint">숨긴 가게는 실시간강남 목록과 지도에 나오지 않아요. 지우지 않고 숨겨두면 언제든 다시 보이게 할 수 있어요.</p>
+
+  <% if (!stores.length) { %><p class="empty-sm">등록된 가게가 없어요.</p><% } %>
+  <div class="admin-list">
+    <% stores.forEach(function (s) { %>
+      <details class="admin-row admin-store<%= s.is_active ? '' : ' is-off' %>">
+        <summary>
+          <span class="admin-row-emoji" aria-hidden="true"><%= s.emoji || '🏙️' %></span>
+          <span class="admin-row-title">[<%= s.region %>] <%= s.name %></span>
+          <% if (!s.is_active) { %><span class="tag muted">숨김</span><% } %>
+          <% if (!s.hours) { %><span class="tag warn">시간 없음</span><% } %>
+          <span class="admin-row-side"><%= s.category %></span>
+        </summary>
+        <div class="admin-row-body">
+          <dl class="admin-user-info">
+            <div><dt>주소</dt><dd><%= s.dong ? s.dong + ' · ' : '' %><%= s.address %></dd></div>
+            <div><dt>영업시간</dt><dd><%= s.hours || '없음' %></dd></div>
+            <div><dt>지도 위치</dt><dd><%= s.lat === null ? '주소로 자동' : s.lat + ', ' + s.lng %></dd></div>
+            <div><dt>수정</dt><dd><%= h.timeAgo(s.updated_at) %></dd></div>
+          </dl>
+          <div class="admin-actions">
+            <a href="/admin/stores/<%= s.id %>" class="btn-sm admin-btn-link">수정</a>
+            <% if (s.is_active) { %><a href="/live/<%= s.id %>" class="btn-sm admin-btn-link">보기</a><% } %>
+            <form method="post" action="/admin/stores/<%= s.id %>/active" <%- s.is_active ? 'data-confirm="이 가게를 목록에서 숨길까요?"' : '' %>>
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="hidden" name="active" value="<%= s.is_active ? '0' : '1' %>">
+              <button type="submit" class="btn-sm<%= s.is_active ? ' danger' : '' %>"><%= s.is_active ? '숨기기' : '다시 보이기' %></button>
+            </form>
+          </div>
+        </div>
+      </details>
+    <% }) %>
+  </div>
+</main>
+<%- include('../partials/foot') %>

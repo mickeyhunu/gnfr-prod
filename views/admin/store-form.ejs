@@ -1,0 +1,56 @@
+<%- include('../partials/admin-top', { title, adminTab }) %>
+  <p class="back-link"><a href="/admin/stores">‹ 가게 목록</a></p>
+  <h2><%= store.id ? '[' + store.region + '] ' + store.name + ' 수정' : '가게 추가' %></h2>
+
+  <form class="admin-form" method="post" action="/admin/stores/save">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <% if (store.id) { %><input type="hidden" name="id" value="<%= store.id %>"><% } %>
+
+    <div class="admin-form-grid">
+      <label><span>지역 <b class="req">필수</b></span>
+        <input name="region" value="<%= store.region %>" maxlength="20" list="region-list" placeholder="강남" required>
+      </label>
+      <label><span>가게 이름 <b class="req">필수</b></span>
+        <input name="name" value="<%= store.name %>" maxlength="50" required>
+      </label>
+      <label><span>업종 <b class="req">필수</b></span>
+        <input name="category" value="<%= store.category %>" maxlength="20" list="category-list" placeholder="하이퍼블릭" required>
+      </label>
+      <label><span>대표 이모지</span>
+        <input name="emoji" value="<%= store.emoji || '' %>" maxlength="16" placeholder="🌲">
+      </label>
+      <label class="wide"><span>상세주소 <b class="req">필수</b></span>
+        <input name="address" value="<%= store.address %>" maxlength="200" placeholder="역삼동 604-11 또는 테헤란로 111" required>
+      </label>
+      <label><span>동</span>
+        <input name="dong" value="<%= store.dong || '' %>" maxlength="20" placeholder="비우면 주소에서 자동">
+      </label>
+      <label><span>영업시간</span>
+        <input name="hours" value="<%= store.hours || '' %>" maxlength="100" placeholder="오후 8시 ~ 오전 5시">
+      </label>
+      <label><span>전화번호</span>
+        <input name="phone" value="<%= store.phone || '' %>" maxlength="20" inputmode="tel" placeholder="02-123-4567">
+      </label>
+      <label class="wide"><span>소개 한 줄</span>
+        <input name="intro" value="<%= store.intro || '' %>" maxlength="200" placeholder="카드에서 주소 대신 보여요">
+      </label>
+      <label><span>위도</span>
+        <input name="lat" value="<%= store.lat === null ? '' : store.lat %>" inputmode="decimal" placeholder="비우면 주소로 찾음">
+      </label>
+      <label><span>경도</span>
+        <input name="lng" value="<%= store.lng === null ? '' : store.lng %>" inputmode="decimal" placeholder="비우면 주소로 찾음">
+      </label>
+      <label class="check wide">
+        <input type="checkbox" name="is_active" value="1" <%= store.is_active ? 'checked' : '' %>> 실시간강남에 보이기
+      </label>
+    </div>
+    <datalist id="region-list"><% regions.forEach(function (r) { %><option value="<%= r %>"><% }) %></datalist>
+    <datalist id="category-list"><% categories.forEach(function (c) { %><option value="<%= c %>"><% }) %></datalist>
+
+    <% if (error) { %><p class="error" role="alert"><%= error %></p><% } %>
+    <div class="admin-actions">
+      <button type="submit" class="btn-primary"><%= store.id ? '저장' : '추가' %></button>
+    </div>
+  </form>
+</main>
+<%- include('../partials/foot') %>

@@ -1,0 +1,73 @@
+<%- include('../partials/admin-top', { title, adminTab }) %>
+<%
+  const statuses = [['', '전체'], ['visible', '공개'], ['hidden', '가림'], ['pending', '검토 대기'], ['deleted', '작성자 삭제']];
+  const url = (o) => {
+    const p = Object.assign({ type: type, status: status, q: q, page: 1 }, o);
+    const qs = [p.type === 'comment' ? 'type=comment' : '', p.status ? 'status=' + p.status : '', p.q ? 'q=' + encodeURIComponent(p.q) : '', p.page > 1 ? 'page=' + p.page : ''].filter(Boolean).join('&');
+    return '/admin/posts' + (qs ? '?' + qs : '');
+  };
+  const back = url({ page: page });
+  const who = (it) => it.login_id || it.real_name || '';
+%>
+  <div class="admin-head-row">
+    <h2>게시글 관리</h2>
+    <nav class="admin-seg" aria-label="종류">
+      <a href="<%= url({ type: 'post', page: 1 }) %>" class="<%= type === 'post' ? 'on' : '' %>" <%- type === 'post' ? 'aria-current="page"' : '' %>>게시글</a>
+      <a href="<%= url({ type: 'comment', page: 1 }) %>" class="<%= type === 'comment' ? 'on' : '' %>" <%- type === 'comment' ? 'aria-current="page"' : '' %>>댓글</a>
+    </nav>
+  </div>
+  <p class="hint">글과 댓글은 기록으로 남기기 위해 지우지 않아요. 문제가 있으면 <b>가리기</b>로 다른 회원에게 안 보이게 하고, 필요하면 다시 보이게 할 수 있어요.</p>
+  <form class="admin-search" method="get" action="/admin/posts" role="search">
+    <label for="post-q" class="sr-only">찾기</label>
+    <input id="post-q" name="q" value="<%= q %>" placeholder="<%= type === 'post' ? '제목·내용, 글 번호, 회원(#12)' : '댓글 내용, 글 번호, 회원(#12)' %>" autocomplete="off">
+    <% if (type === 'comment') { %><input type="hidden" name="type" value="comment"><% } %>
+    <% if (status) { %><input type="hidden" name="status" value="<%= status %>"><% } %>
+    <button type="submit" class="btn-sm">찾기</button>
+  </form>
+  <nav class="admin-seg" aria-label="상태">
+    <% statuses.forEach(function (st) { %>
+      <a href="<%= url({ status: st[0], page: 1 }) %>" class="<%= status === st[0] ? 'on' : '' %>" <%- status === st[0] ? 'aria-current="page"' : '' %>><%= st[1] %></a>
+    <% }) %>
+  </nav>
+  <% if (q) { %><p class="hint">'<%= q %>' 검색 결과 · <a href="<%= url({ q: '', page: 1 }) %>">검색 지우기</a></p><% } %>
+
+  <% if (!items.length) { %><p class="empty-sm">해당하는 <%= type === 'post' ? '글' : '댓글' %>이 없어요.</p><% } %>
+  <div class="admin-list">
+    <% items.forEach(function (it) { const isPost = type === 'post'; %>
+      <details class="admin-row<%= it.status === 'hidden' || it.status === 'deleted' ? ' is-off' : '' %>" <%= items.length === 1 ? 'open' : '' %>>
+        <summary>
+          <span class="tag <%= modTag[it.status] %>"><%= modStatus[it.status] %></span>
+          <span class="admin-row-title"><%= isPost ? it.title : it.body %></span>
+          <% if (it.report_count) { %><span class="admin-row-side admin-meta">신고 <%= it.report_count %></span><% } %>
+          <span class="admin-row-side"><%= h.timeAgo(it.created_at) %></span>
+        </summary>
+        <div class="admin-row-body">
+          <div class="meta">
+            <span>#<%= it.id %></span>
+            <span class="tag"><%= it.board %></span>
+            <a href="/admin/users?q=%23<%= it.user_id %>">작성자 #<%= it.user_id %> <%= who(it) %></a>
+            <% if (isPost) { %>
+              <span>조회 <%= it.view_count %> · 추천 <%= it.up_count %> · 비추 <%= it.down_count %> · 댓글 <%= it.comment_count %></span>
+            <% } else { %>
+              <span>익명<%= it.anon_no %> · 추천 <%= it.up_count %> · 비추 <%= it.down_count %></span>
+            <% } %>
+          </div>
+          <% if (!isPost) { %><a class="admin-link" href="/p/<%= it.post_id %>#c<%= it.id %>">원글 #<%= it.post_id %> <%= it.post_title %></a><% } %>
+          <% if (it.flag_words) { %><p class="flag">걸린 단어: <%= it.flag_words %></p><% } %>
+          <div class="admin-body"><%= it.body %></div>
+          <% if (isPost && it.status !== 'deleted') { %><a class="admin-link" href="/p/<%= it.id %>">글 화면에서 보기</a><% } %>
+          <%- include('../partials/admin-mod-actions', { kind: isPost ? 'posts' : 'comments', id: it.id, status: it.status, userId: it.user_id, back: back, dismiss: null }) %>
+        </div>
+      </details>
+    <% }) %>
+  </div>
+
+  <% if (page > 1 || hasNext) { %>
+    <nav class="pager" aria-label="페이지">
+      <% if (page > 1) { %><a href="<%= url({ page: page - 1 }) %>">이전</a><% } else { %><span></span><% } %>
+      <span><%= page %>쪽</span>
+      <% if (hasNext) { %><a href="<%= url({ page: page + 1 }) %>">다음</a><% } else { %><span></span><% } %>
+    </nav>
+  <% } %>
+</main>
+<%- include('../partials/foot') %>

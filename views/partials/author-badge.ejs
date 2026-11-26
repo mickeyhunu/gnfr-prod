@@ -1,0 +1,3 @@
+<%# 계급 · 성별 표시. a = { rank: { name, level, icon }, gender: 'M'|'F'|null } %>
+<% if (a && a.rank) { %><span class="rank-badge lv-<%= a.rank.level %>"><% if (a.rank.icon) { %><img src="<%= a.rank.icon %>" alt="" width="16" height="16"><% } %><%= a.rank.name %></span><% } %>
+<% if (a && a.gender) { %><span class="gender-badge <%= a.gender === 'F' ? 'f' : 'm' %>"><%= a.gender === 'F' ? '여' : '남' %></span><% } %>

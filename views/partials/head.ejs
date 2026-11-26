@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F5F4EE">
+  <% const seo = locals.seo || { robots: 'noindex, nofollow', indexable: false }; %>
+  <meta name="robots" content="<%= seo.robots %>">
+  <meta name="csrf-token" content="<%= locals.csrfToken || '' %>">
+  <title><%= seo.title || (title ? title + ' · 강남의숲' : '강남의숲') %></title>
+  <% if (locals.site) { %><%- include('seo-meta', { seo }) %><% } %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Gowun+Batang:wght@700&display=swap">
+  <link rel="icon" href="/images/brand/favicon.webp" type="image/webp">
+  <link rel="apple-touch-icon" href="/images/brand/favicon.webp">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/app.js" defer></script>
+</head>
+<body>
+<div class="app<%= locals.bodyClass ? ' ' + bodyClass : '' %><%= locals.nav ? ' has-tabbar' : '' %>">
+<header class="site">
+  <%- include('logo') %>
+  <div class="site-actions">
+    <% if (locals.user) { %>
+      <% if (user.role === 'admin') { %><a href="/admin" class="link-sm">관리</a><% } %>
+      <a href="/search" class="icon-btn" aria-label="검색">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </a>
+      <% const nc = locals.notifCount || 0; %>
+      <a href="/notifications" class="icon-btn notif-btn" aria-label="알림<%= nc ? ' ' + nc + '개 새로 옴' : '' %>">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <% if (nc) { %><span class="badge" aria-hidden="true"><%= nc > 9 ? '9+' : nc %></span><% } %>
+      </a>
+    <% } else if (locals.path === '/login') { %>
+      <a href="/signup" class="link-sm">회원가입</a>
+    <% } else { %>
+      <a href="/login" class="link-sm">로그인</a>
+    <% } %>
+  </div>
+</header>
+<% if (locals.needsReferral && locals.path !== '/me') { %>
+<a href="/me#referral" class="referral-strip">추천인 코드를 등록하면 글·댓글·추천을 할 수 있어요 ›</a>
+<% } %>

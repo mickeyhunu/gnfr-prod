@@ -1,0 +1,42 @@
+<%#
+  글·댓글 처리 버튼 (지우지 않고 공개 / 가리기만)
+  kind: 'posts' | 'comments', id, status, userId, back, dismiss(신고 정리용 target_type, 없으면 버튼 안 보임)
+%>
+<div class="admin-actions">
+  <% if (status === 'deleted') { %>
+    <span class="hint">작성자가 지운 <%= kind === 'posts' ? '글' : '댓글' %>이에요. 기록으로만 남아 있어요.</span>
+  <% } else { %>
+    <% if (status !== 'visible') { %>
+      <form method="post" action="/admin/<%= kind %>/<%= id %>/status">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="status" value="visible">
+        <input type="hidden" name="back" value="<%= back %>">
+        <button type="submit" class="btn-sm"><%= status === 'pending' ? '승인해서 공개' : '다시 보이기' %></button>
+      </form>
+    <% } %>
+    <% if (status !== 'hidden') { %>
+      <form method="post" action="/admin/<%= kind %>/<%= id %>/status">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="status" value="hidden">
+        <input type="hidden" name="back" value="<%= back %>">
+        <button type="submit" class="btn-sm danger">가리기</button>
+      </form>
+    <% } %>
+  <% } %>
+  <% if (locals.dismiss) { %>
+    <form method="post" action="/admin/reports/dismiss">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="type" value="<%= dismiss %>">
+      <input type="hidden" name="id" value="<%= id %>">
+      <button type="submit" class="btn-sm">문제없음</button>
+    </form>
+  <% } %>
+  <% if (userId) { %>
+    <form method="post" action="/admin/users/<%= userId %>/ban" data-confirm="이 작성자를 이용 제한할까요?">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="ban" value="1">
+      <input type="hidden" name="back" value="<%= back %>">
+      <button type="submit" class="btn-sm danger">작성자 제한</button>
+    </form>
+  <% } %>
+</div>

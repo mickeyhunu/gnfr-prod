@@ -1,0 +1,59 @@
+<%- include('partials/head', { title }) %>
+
+<main class="list">
+  <p class="back-link"><a href="/me">‹ 마이페이지</a></p>
+
+  <section class="info-box" aria-labelledby="pw-title">
+    <h2 id="pw-title">비밀번호 바꾸기</h2>
+    <form class="auth-form edit-form" method="post" action="/me/password" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <% if (user.has_password) { %>
+        <label for="pw-current">지금 비밀번호</label>
+        <input id="pw-current" name="current" type="password" autocomplete="current-password" maxlength="64" required>
+      <% } else { %>
+        <p class="hint">비밀번호 없이 만든 계정이라 새 비밀번호만 정하면 돼요.</p>
+      <% } %>
+      <label for="pw-new">새 비밀번호</label>
+      <input id="pw-new" name="password" type="password" autocomplete="new-password" maxlength="64" placeholder="영문, 숫자 포함 8자 이상" required>
+      <label for="pw-new2">새 비밀번호 확인</label>
+      <input id="pw-new2" name="password2" type="password" autocomplete="new-password" maxlength="64" required>
+      <% if (pwError) { %><p class="error" role="alert"><%= pwError %></p><% } %>
+      <button type="submit" class="btn-primary">비밀번호 바꾸기</button>
+    </form>
+  </section>
+
+  <section class="info-box" aria-labelledby="phone-title">
+    <h2 id="phone-title">휴대폰 번호 바꾸기</h2>
+    <p class="hint">지금 번호 <b><%= phone || '없음' %></b> · 바꾸면 다음 로그인부터 새 번호로 들어와요.</p>
+    <% if (kcpOn) { %>
+      <div class="auth-form edit-form">
+        <p class="hint">새 번호로 휴대폰 본인확인을 하면 바로 바뀌어요. 이 계정으로 본인확인한 사람 명의의 번호만 쓸 수 있어요.</p>
+        <% if (phoneError) { %><p class="error" role="alert"><%= phoneError %></p><% } %>
+        <a class="btn-primary kcp-btn" href="/kcp/start?purpose=phone" data-kcp-popup>새 번호로 본인확인</a>
+      </div>
+    <% } else { %>
+    <form class="auth-form edit-form" method="post" action="/me/phone" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label for="phone">새 휴대폰 번호</label>
+      <% if (skipPhoneAuth) { %>
+        <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="010-1234-5678" value="<%= newPhone %>" required>
+      <% } else { %>
+        <div class="row">
+          <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="010-1234-5678" value="<%= newPhone %>" required>
+          <button type="button" class="btn-outline" id="send-code">인증번호 받기</button>
+        </div>
+        <p class="hint" id="send-msg" role="status" aria-live="polite"></p>
+        <label for="code">인증번호</label>
+        <input id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6자리" required>
+      <% } %>
+      <% if (user.has_password) { %>
+        <label for="phone-current">지금 비밀번호</label>
+        <input id="phone-current" name="current" type="password" autocomplete="current-password" maxlength="64" required>
+      <% } %>
+      <% if (phoneError) { %><p class="error" role="alert"><%= phoneError %></p><% } %>
+      <button type="submit" class="btn-primary">번호 바꾸기</button>
+    </form>
+    <% } %>
+  </section>
+</main>
+<%- include('partials/foot') %>

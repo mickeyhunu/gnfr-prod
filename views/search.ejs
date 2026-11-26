@@ -1,0 +1,23 @@
+<%- include('partials/head', { title }) %>
+<form method="get" action="/search" class="search-bar" role="search">
+  <a href="/forest" class="icon-btn" aria-label="뒤로">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+  </a>
+  <label for="q" class="sr-only">검색어</label>
+  <input id="q" name="q" type="search" value="<%= q %>" maxlength="50" placeholder="제목이나 내용으로 검색" autocomplete="off" <%= q ? '' : 'autofocus' %>>
+  <button type="submit" class="search-go">검색</button>
+</form>
+
+<main class="list">
+  <% if (!q) { %>
+    <p class="empty">찾고 싶은 글의 제목이나 내용을 입력해 주세요.</p>
+  <% } else if (!posts.length) { %>
+    <p class="empty">"<%= q %>"에 맞는 글이 없어요.</p>
+  <% } else { %>
+    <p class="list-note">"<%= q %>" 검색 결과 <%= posts.length %><%= posts.length >= 50 ? '개 이상' : '개' %></p>
+    <% posts.forEach(function (p) { %>
+      <%- include('partials/post-card', { p, rank: null }) %>
+    <% }) %>
+  <% } %>
+</main>
+<%- include('partials/foot') %>

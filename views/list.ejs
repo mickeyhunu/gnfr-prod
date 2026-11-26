@@ -1,0 +1,80 @@
+<%- include('partials/head', { title }) %>
+<header class="top">
+  <%
+    // 순서: 전체 → 내 성별의 숲 → 핫 → 공용 게시판
+    const chipItems = [{ href: '/forest', label: '전체', on: tab === 'all' && !board }]
+      .concat(genderChips.map(function (g) {
+        return { href: '/forest?board=' + encodeURIComponent(g.name), label: g.name, on: board === g.name, gender: true, locked: !g.readable };
+      }))
+      .concat([{ href: '/forest?tab=hot', label: '핫', on: tab === 'hot', hot: true }])
+      .concat(boards.map(function (b) {
+        return { href: '/forest?board=' + encodeURIComponent(b), label: b, on: tab === 'all' && board === b };
+      }));
+    const viewHref = (v) => '/forest?' + [tab === 'hot' ? 'tab=hot' : '', board ? 'board=' + encodeURIComponent(board) : '', page > 1 ? 'page=' + page : '', 'view=' + v].filter(Boolean).join('&');
+    const listIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1" fill="currentColor"/><circle cx="3.5" cy="12" r="1" fill="currentColor"/><circle cx="3.5" cy="18" r="1" fill="currentColor"/></svg>';
+    const cardIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="8" rx="2"/><rect x="3" y="13" width="18" height="8" rx="2"/></svg>';
+    const lockIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+  %>
+  <div class="top-row">
+  <nav class="chips" aria-label="게시판">
+    <% chipItems.forEach(function (c) { %>
+      <a href="<%= c.href %>" class="chip<%= c.hot ? ' hot' : '' %><%= c.gender ? ' gender' : '' %><%= c.on ? ' on' : '' %>" <%- c.on ? 'aria-current="page"' : '' %>><% if (c.hot) { %><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-6 1-9.5z"/></svg><% } %><% if (c.locked) { %><%- lockIcon %><% } %><%= c.label %></a>
+    <% }) %>
+  </nav>
+  <% if (posts.length) { %>
+  <% const nextView = feedView === 'card' ? 'list' : 'card'; %>
+  <a href="<%= viewHref(nextView) %>" class="view-pick" aria-label="<%= nextView === 'card' ? '카드형으로 보기' : '리스트형으로 보기' %> (지금 <%= feedView === 'card' ? '카드형' : '리스트형' %>)" title="<%= nextView === 'card' ? '카드형으로 보기' : '리스트형으로 보기' %>"><%- feedView === 'card' ? cardIcon : listIcon %></a>
+  <% } %>
+  </div>
+</header>
+
+<main class="list">
+  <% if (locked) { %>
+    <section class="lock-note">
+      <span class="lock-ico" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
+      <strong><%= board %>은 <%= board === '여성의숲' ? '여성' : '남성' %> 회원만 볼 수 있어요</strong>
+      <% if (!user.gender) { %>
+        <% if (kcpOn) { %>
+          <p>본인인증으로 성별이 확인되면 내 성별의 숲이 열려요.</p>
+          <a class="btn-pill" href="/kcp/start?purpose=verify" data-kcp-popup>휴대폰 본인인증</a>
+        <% } else { %>
+          <p>본인인증으로 성별이 확인되면 내 성별의 숲이 열려요.<br>성별 인증은 곧 열릴 예정이에요.</p>
+        <% } %>
+      <% } else { %>
+        <p>같은 성별 회원끼리만 이야기하는 공간이에요.</p>
+      <% } %>
+    </section>
+  <% } else if (board && genderChips.some(function (g) { return g.name === board; })) { %>
+    <p class="list-note gender-note"><%- lockIcon %> <%= board === '여성의숲' ? '여성' : '남성' %> 회원에게만 보이는 게시판이에요. 다른 성별에게는 글이 보이지 않아요.</p>
+  <% } %>
+
+
+  <% if (!posts.length && !locked) { %>
+    <p class="empty"><%= tab === 'hot' ? '아직 핫글이 없어요.' : '아직 글이 없어요. 첫 글을 남겨보세요.' %></p>
+  <% } %>
+
+  <% if (posts.length) { %>
+    <div class="feed<%= feedView === 'list' ? ' as-list' : '' %>">
+      <% posts.forEach(function (p, i) { %>
+        <%- include('partials/post-card', { p, rank: tab === 'hot' ? (page - 1) * 20 + i + 1 : null }) %>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <% if (page > 1 || hasNext) { %>
+    <nav class="pager" aria-label="페이지">
+      <% const q = (n) => '/forest?' + [tab === 'hot' ? 'tab=hot' : '', board ? 'board=' + encodeURIComponent(board) : '', 'page=' + n].filter(Boolean).join('&'); %>
+      <% if (page > 1) { %><a href="<%= q(page - 1) %>">이전</a><% } else { %><span></span><% } %>
+      <span><%= page %>쪽</span>
+      <% if (hasNext) { %><a href="<%= q(page + 1) %>">다음</a><% } else { %><span></span><% } %>
+    </nav>
+  <% } %>
+</main>
+
+<% if (!locked) { %>
+<a href="/write<%= board && genderChips.some(function (g) { return g.name === board; }) ? '?board=' + encodeURIComponent(board) : '' %>" class="fab">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg>
+  글쓰기
+</a>
+<% } %>
+<%- include('partials/foot') %>

@@ -1,0 +1,22 @@
+<%
+  const tabs = [
+    { key: 'home', href: '/', label: '홈',
+      icon: '<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.8V20h13V9.8"/><path d="M10 20v-5.5h4V20"/>' },
+    { key: 'live', href: '/live', label: '실시간강남',
+      icon: '<circle cx="12" cy="12" r="2"/><path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7"/><path d="M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8"/>' },
+    { key: 'forest', href: '/forest', label: '숲',
+      icon: '<path d="M8 21V3M8 8h3M8 14h3M16 21V7M16 11h-3M16 16h-3"/>' },
+    { key: 'ads', href: '/ads', label: '광고',
+      icon: '<path d="M4 10v4a1 1 0 0 0 1 1h3l7 4V5L8 9H5a1 1 0 0 0-1 1Z"/><path d="M8 15v4.5"/><path d="M18.5 9.5a3.5 3.5 0 0 1 0 5"/>' },
+    { key: 'me', href: '/me', label: '마이페이지',
+      icon: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>' },
+  ];
+%>
+<nav class="tabbar" aria-label="주요 메뉴">
+  <% tabs.forEach(function (t) { const on = nav === t.key; %>
+    <a href="<%= t.href %>" class="tabbar-item<%= on ? ' on' : '' %>" <%- on ? 'aria-current="page"' : '' %>>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="<%= on ? 2.2 : 1.8 %>" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><%- t.icon %></svg>
+      <span><%= t.label %></span>
+    </a>
+  <% }) %>
+</nav>

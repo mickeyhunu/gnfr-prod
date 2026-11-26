@@ -1,0 +1,60 @@
+<%- include('../partials/admin-top', { title, adminTab }) %>
+<%
+  const todo = [
+    { label: '검토·신고', n: pending.review, href: '/admin/review', hint: '검토 대기 글·댓글과 신고' },
+    { label: '광고 심사', n: pending.ads, href: '/admin/ads', hint: '승인을 기다리는 광고' },
+    { label: '1:1 문의', n: pending.inquiries, href: '/admin/inquiries', hint: '답변을 기다리는 문의' },
+  ];
+  const stats = [
+    { label: '전체 회원', v: s.users, sub: '오늘 +' + s.users_today + ' · 7일 +' + s.users_week, href: '/admin/users' },
+    { label: '이용 제한', v: s.banned, href: '/admin/users?filter=banned' },
+    { label: '오늘 글', v: s.posts_today, sub: '전체 ' + Number(s.posts).toLocaleString(), href: '/admin/posts' },
+    { label: '오늘 댓글', v: s.comments_today, href: '/admin/posts?type=comment' },
+    { label: '게시 중 광고', v: s.ads_live, href: '/admin/ads' },
+    { label: '노출 중 가게', v: s.stores, href: '/admin/stores' },
+  ];
+%>
+  <h2>처리할 일</h2>
+  <div class="admin-todo">
+    <% todo.forEach(function (t) { %>
+      <a href="<%= t.href %>" class="admin-tile<%= t.n ? ' has-work' : '' %>">
+        <span class="admin-tile-label"><%= t.label %></span>
+        <b class="admin-tile-num"><%= t.n %></b>
+        <span class="admin-tile-sub"><%= t.n ? t.hint : '모두 처리했어요' %></span>
+      </a>
+    <% }) %>
+  </div>
+
+  <h2>현황</h2>
+  <div class="admin-stats">
+    <% stats.forEach(function (t) { %>
+      <% if (t.href) { %><a href="<%= t.href %>" class="admin-tile"><% } else { %><div class="admin-tile"><% } %>
+        <span class="admin-tile-label"><%= t.label %></span>
+        <b class="admin-tile-num"><%= Number(t.v).toLocaleString() %></b>
+        <% if (t.sub) { %><span class="admin-tile-sub"><%= t.sub %></span><% } %>
+      <% if (t.href) { %></a><% } else { %></div><% } %>
+    <% }) %>
+  </div>
+
+  <div class="admin-cols">
+    <section>
+      <h2>최근 가입</h2>
+      <% if (!recentUsers.length) { %><p class="empty-sm">없어요.</p><% } %>
+      <ul class="admin-mini">
+        <% recentUsers.forEach(function (u) { %>
+          <li><a href="/admin/users?q=%23<%= u.id %>">#<%= u.id %> <%= [u.real_name || u.login_id, u.phoneText].filter(Boolean).join(' ') %></a><span><%= h.timeAgo(u.created_at) %></span></li>
+        <% }) %>
+      </ul>
+    </section>
+    <section>
+      <h2>최근 글</h2>
+      <% if (!recentPosts.length) { %><p class="empty-sm">없어요.</p><% } %>
+      <ul class="admin-mini">
+        <% recentPosts.forEach(function (p) { %>
+          <li><a href="/admin/posts?q=<%= p.id %>"><%= p.title %></a><span><%= modStatus[p.status] || p.status %> · <%= h.timeAgo(p.created_at) %></span></li>
+        <% }) %>
+      </ul>
+    </section>
+  </div>
+</main>
+<%- include('../partials/foot') %>

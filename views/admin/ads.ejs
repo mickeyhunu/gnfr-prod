@@ -1,0 +1,102 @@
+<%- include('../partials/admin-top', { title, adminTab }) %>
+  <section>
+    <h2>광고 심사</h2>
+    <p class="hint">국세청 상태조회에서 계속사업자로 확인된 광고예요. <b>사업자등록증의 번호·상호가 신청 내용과 같은지</b> 꼭 확인하세요. 승인하면 국세청 상태를 한 번 더 확인해요.<% if (!ntsReady) { %> <b class="nts-bad">지금은 NTS_BUSINESS_API_SERVICE_KEY 가 없어 승인할 수 없어요.</b><% } %></p>
+    <% if (!pendingAds.length) { %><p class="empty-sm">심사할 광고가 없어요.</p><% } %>
+    <div class="admin-list">
+    <% pendingAds.forEach(function (a) { const c = adCategory(a.category); %>
+      <details class="admin-row admin-ad">
+        <summary>
+          <span class="tag"><%= c.name %></span>
+          <% if (a.kind === 'job') { %><span class="kind-badge job">구인</span><% } %>
+          <span class="admin-row-title"><%= a.title %></span>
+          <span class="admin-row-side"><%= h.timeAgo(a.created_at) %></span>
+        </summary>
+        <div class="admin-row-body">
+        <div class="meta"><span>#<%= a.id %></span><a href="/admin/users?q=%23<%= a.user_id %>">신청 회원 #<%= a.user_id %></a><a href="/ads/<%= a.id %>">미리보기</a></div>
+        <dl>
+          <dt>상호</dt><dd><%= a.business_name %></dd>
+          <dt>사업자번호</dt><dd><%= a.b_no.slice(0, 3) %>-<%= a.b_no.slice(3, 5) %>-<%= a.b_no.slice(5) %></dd>
+          <dt>국세청 상태</dt><dd><span class="<%= a.nts_status_cd === '01' ? 'nts-ok' : 'nts-bad' %>"><%= a.nts_status || '확인 전' %></span><% if (a.nts_tax_type) { %> · <%= a.nts_tax_type %><% } %><% if (a.nts_checked_at) { %> (<%= h.timeAgo(a.nts_checked_at) %> 확인)<% } %></dd>
+          <dt>첨부 서류</dt>
+          <dd>
+            <ul class="doc-list">
+              <% a.files.forEach(function (f, i) { %>
+                <li><a href="/admin/ads/files/<%= f.id %>" target="_blank" rel="noopener"><%= docLabel[f.kind] %><%= f.kind === 'etc' ? ' ' + (a.files.filter(function (x) { return x.kind === 'etc'; }).indexOf(f) + 1) : '' %></a> <span class="doc-type"><%= f.mime === 'application/pdf' ? 'PDF' : '사진' %></span></li>
+              <% }) %>
+            </ul>
+            <% if (!a.files.some(function (f) { return f.kind === 'biz_cert'; })) { %><span class="nts-bad">사업자등록증 없음</span><% } %>
+            <% if (c.license) { %>
+              <% if (a.files.some(function (f) { return f.kind === 'license'; })) { %><span class="doc-hint"><%= c.license %>인지 확인</span><% } else { %><span class="nts-bad">영업허가증 없음 (필수: <%= c.license %>)</span><% } %>
+            <% } %>
+          </dd>
+          <% if (a.kind === 'job') { %>
+            <dt>고용형태</dt><dd><%= empTypes[a.employment_type] || '-' %></dd>
+            <dt>급여</dt><dd><%= payTypes[a.pay_type] %> <%= Number(a.pay_amount).toLocaleString('ko-KR') %>원</dd>
+            <% if (a.job_role) { %><dt>모집 직무</dt><dd><%= a.job_role %></dd><% } %>
+            <% if (a.work_hours) { %><dt>근무 시간</dt><dd><%= a.work_hours %></dd><% } %>
+          <% } %>
+          <dt><%= a.kind === 'job' ? '근무 주소' : '주소' %></dt><dd><%= a.address || '-' %></dd>
+          <dt>담당자</dt><dd><%= a.contact_name %> · <%= a.phone %></dd>
+          <% const ms = [['카톡', a.kakao_id], ['라인', a.line_id], ['위챗', a.wechat_id], ['텔레그램', a.telegram_id]].filter(function (x) { return x[1]; }); %>
+          <% if (ms.length) { %><dt>메신저</dt><dd><%= ms.map(function (x) { return x[0] + ' ' + x[1]; }).join(' · ') %></dd><% } %>
+        </dl>
+        <div class="admin-body rich-body"><%- a.bodyHtml %></div>
+        <div class="admin-actions">
+          <form method="post" action="/admin/ads/<%= a.id %>/approve">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" class="btn-sm" <%= ntsReady ? '' : 'disabled' %>>승인해서 게시</button>
+          </form>
+          <form method="post" action="/admin/ads/<%= a.id %>/reject" class="reject-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input name="note" maxlength="200" placeholder="반려 사유 (신청한 회원에게 보여요)" required aria-label="반려 사유">
+            <button type="submit" class="btn-sm danger">반려</button>
+          </form>
+        </div>
+        </div>
+      </details>
+    <% }) %>
+    </div>
+
+    <h2>게시 중 · 중단된 광고</h2>
+    <% if (!liveAds.length) { %><p class="empty-sm">없어요.</p><% } %>
+    <div class="admin-list">
+    <% liveAds.forEach(function (a) { %>
+      <details class="admin-row admin-ad<%= a.status === 'suspended' ? ' is-off' : '' %>">
+        <summary>
+          <span class="tag<%= a.status === 'suspended' ? ' warn' : '' %>"><%= a.status === 'approved' ? '게시 중' : '중단' %></span>
+          <% if (a.kind === 'job') { %><span class="kind-badge job">구인</span><% } %>
+          <span class="admin-row-title"><%= a.title %></span>
+          <span class="admin-row-side"><%= a.business_name %></span>
+        </summary>
+        <div class="admin-row-body">
+        <div class="meta">
+          <span>#<%= a.id %></span>
+          <span><%= adCategory(a.category).name %></span><span>조회 <%= a.view_count %></span><a href="/admin/users?q=%23<%= a.user_id %>">회원 #<%= a.user_id %></a>
+          <span class="<%= a.nts_status_cd === '01' ? 'nts-ok' : 'nts-bad' %>">국세청 <%= a.nts_status || '확인 전' %></span>
+          <% if (a.nts_checked_at) { %><span><%= h.timeAgo(a.nts_checked_at) %> 확인</span><% } %>
+        </div>
+        <a href="/ads/<%= a.id %>" class="admin-link">광고 보기</a>
+        <span><%= a.business_name %> · <%= a.b_no %></span>
+        <% if (a.status_note) { %><p class="flag"><%= a.status_note %></p><% } %>
+        <div class="admin-actions">
+          <% if (a.status === 'suspended') { %>
+            <form method="post" action="/admin/ads/<%= a.id %>/approve">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit" class="btn-sm" <%= ntsReady ? '' : 'disabled' %>>다시 확인하고 게시</button>
+            </form>
+          <% } else { %>
+            <form method="post" action="/admin/ads/<%= a.id %>/reject" class="reject-form">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input name="note" maxlength="200" placeholder="중단 사유 (신청한 회원에게 보여요)" required aria-label="중단 사유">
+              <button type="submit" class="btn-sm danger">게시 중단</button>
+            </form>
+          <% } %>
+        </div>
+        </div>
+      </details>
+    <% }) %>
+    </div>
+  </section>
+</main>
+<%- include('../partials/foot') %>

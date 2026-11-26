@@ -1,0 +1,80 @@
+<%- include('../partials/admin-top', { title, adminTab }) %>
+<%
+  const filters = [['', '전체'], ['banned', '이용 제한'], ['noref', '추천인 없음'], ['admin', '관리자']];
+  const url = (o) => {
+    const p = Object.assign({ q: q, filter: filter, page: 1 }, o);
+    const qs = [p.q ? 'q=' + encodeURIComponent(p.q) : '', p.filter ? 'filter=' + p.filter : '', p.page > 1 ? 'page=' + p.page : ''].filter(Boolean).join('&');
+    return '/admin/users' + (qs ? '?' + qs : '');
+  };
+  const back = url({ page: page });
+  const ymd = (v) => {
+    if (!v) return '-';
+    const d = new Date(v);
+    const pad = (n) => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  };
+%>
+  <h2>회원</h2>
+  <form class="admin-search" method="get" action="/admin/users" role="search">
+    <label for="user-q" class="sr-only">회원 찾기</label>
+    <input id="user-q" name="q" value="<%= q %>" placeholder="이름, 휴대폰 번호, 회원번호(#12), 추천인 코드" autocomplete="off">
+    <% if (filter) { %><input type="hidden" name="filter" value="<%= filter %>"><% } %>
+    <button type="submit" class="btn-sm">찾기</button>
+  </form>
+  <nav class="admin-seg" aria-label="회원 분류">
+    <% filters.forEach(function (f) { %>
+      <a href="<%= url({ filter: f[0], page: 1 }) %>" class="<%= filter === f[0] ? 'on' : '' %>" <%- filter === f[0] ? 'aria-current="page"' : '' %>><%= f[1] %></a>
+    <% }) %>
+  </nav>
+  <% if (q) { %><p class="hint">'<%= q %>' 검색 결과 · <a href="<%= url({ q: '', page: 1 }) %>">검색 지우기</a></p><% } %>
+
+  <% if (!users.length) { %><p class="empty-sm">해당하는 회원이 없어요.</p><% } %>
+  <div class="admin-list">
+    <% users.forEach(function (u) { %>
+      <details class="admin-row admin-user<%= u.status === 'banned' ? ' is-off' : '' %>" <%= users.length === 1 ? 'open' : '' %>>
+        <summary>
+          <span class="admin-row-id">#<%= u.id %></span>
+          <span class="admin-row-title"><% const nm = u.real_name || u.login_id; %><% if (nm) { %><%= nm %><% } %><% if (u.phoneText) { %><span class="admin-row-phone<%= nm ? '' : ' solo' %>"><%= u.phoneText %></span><% } %><% if (!nm && !u.phoneText) { %>번호 없음<% } %></span>
+          <% if (u.role === 'admin') { %><span class="tag">관리자</span><% } %>
+          <% if (u.status === 'banned') { %><span class="tag warn">제한</span><% } %>
+          <% if (!u.referrer_code && u.role !== 'admin') { %><span class="tag muted">추천인 없음</span><% } %>
+        </summary>
+        <div class="admin-row-body">
+          <dl class="admin-user-info">
+            <div><dt>이름</dt><dd><%= u.real_name || '-' %></dd></div>
+            <div><dt>휴대폰</dt><dd><%= u.phoneText || '-' %></dd></div>
+            <% if (u.login_id) { %><div><dt>아이디</dt><dd><%= u.login_id %></dd></div><% } %>
+            <div><dt>생년월일</dt><dd><%= ymd(u.birth_date) %></dd></div>
+            <div><dt>성별</dt><dd><%= u.gender === 'M' ? '남성' : u.gender === 'F' ? '여성' : '-' %><%= u.is_foreigner ? ' · 외국인' : '' %></dd></div>
+            <div><dt>본인인증</dt><dd><%= u.identity_verified_at ? ymd(u.identity_verified_at) + (u.carrier ? ' · ' + u.carrier : '') : '안 함' %></dd></div>
+            <div><dt>내 코드</dt><dd><%= u.referral_code || '-' %></dd></div>
+            <div><dt>가입 코드</dt><dd><% if (u.referrer_code) { %><a href="<%= url({ q: u.referrer_code, filter: '', page: 1 }) %>"><%= u.referrer_code %></a><% } else { %>-<% } %></dd></div>
+            <div><dt>활동</dt><dd><a href="/admin/posts?q=%23<%= u.id %>">글 <%= u.posts %></a> · <a href="/admin/posts?type=comment&q=%23<%= u.id %>">댓글 <%= u.comments %></a> · 초대 <%= u.invited %></dd></div>
+            <div><dt>받은 신고</dt><dd class="<%= u.reported ? 'admin-meta' : '' %>"><%= u.reported %>건</dd></div>
+            <div><dt>가입</dt><dd><%= ymd(u.created_at) %> (<%= h.timeAgo(u.created_at) %>)</dd></div>
+            <div><dt>최근 로그인</dt><dd><%= u.last_login_at ? h.timeAgo(u.last_login_at) : '-' %></dd></div>
+          </dl>
+          <% if (u.role !== 'admin') { %>
+            <div class="admin-actions">
+              <form method="post" action="/admin/users/<%= u.id %>/ban" data-confirm="<%= u.status === 'banned' ? '이용 제한을 풀까요?' : '이 회원의 글·댓글·추천을 제한할까요?' %>">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="ban" value="<%= u.status === 'banned' ? '0' : '1' %>">
+                <input type="hidden" name="back" value="<%= back %>">
+                <button type="submit" class="btn-sm<%= u.status === 'banned' ? '' : ' danger' %>"><%= u.status === 'banned' ? '제한 풀기' : '이용 제한' %></button>
+              </form>
+            </div>
+          <% } %>
+        </div>
+      </details>
+    <% }) %>
+  </div>
+
+  <% if (page > 1 || hasNext) { %>
+    <nav class="pager" aria-label="페이지">
+      <% if (page > 1) { %><a href="<%= url({ page: page - 1 }) %>">이전</a><% } else { %><span></span><% } %>
+      <span><%= page %>쪽</span>
+      <% if (hasNext) { %><a href="<%= url({ page: page + 1 }) %>">다음</a><% } else { %><span></span><% } %>
+    </nav>
+  <% } %>
+</main>
+<%- include('../partials/foot') %>

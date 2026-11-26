@@ -1,0 +1,53 @@
+<%- include('partials/head', { title }) %>
+<header class="top">
+  <div class="top-row">
+    <nav class="chips" aria-label="활동내역">
+      <% tabs.forEach(function (t) { %>
+        <a href="/me/activity?tab=<%= t.key %>" class="chip<%= tab === t.key ? ' on' : '' %>" <%- tab === t.key ? 'aria-current="page"' : '' %>><%= t.label %> <span class="chip-count"><%= counts[t.key] %></span></a>
+      <% }) %>
+    </nav>
+  </div>
+</header>
+
+<main class="list">
+  <p class="back-link"><a href="/me">‹ 마이페이지</a></p>
+
+  <% if (!rows.length) { %>
+    <p class="empty"><%=
+      tab === 'posts' ? '아직 쓴 글이 없어요.'
+      : tab === 'comments' ? '아직 쓴 댓글이 없어요.'
+      : tab === 'liked' ? '글에서 추천을 누르면 여기에 모여요.'
+      : '글에서 저장을 누르면 여기에 모여요.' %></p>
+  <% } else if (tab === 'comments') { %>
+    <ul class="my-comments">
+      <% rows.forEach(function (c) { const gone = c.post_status !== 'visible'; %>
+        <li>
+          <% if (gone) { %><div class="my-comment is-gone"><% } else { %><a class="my-comment" href="/p/<%= c.post_id %>#c<%= c.id %>"><% } %>
+            <p class="my-comment-body"><%= c.body %></p>
+            <p class="my-comment-meta">
+              <span class="my-comment-post"><%= gone ? '볼 수 없는 글' : c.post_title %></span>
+              <span><%= h.timeAgo(c.created_at) %></span>
+              <% if (c.up_count) { %><span>추천 <%= c.up_count %></span><% } %>
+              <% if (c.status !== 'visible') { %><span class="tag-warn"><%= c.status === 'pending' ? '검토 중' : '숨김' %></span><% } %>
+            </p>
+          <% if (gone) { %></div><% } else { %></a><% } %>
+        </li>
+      <% }) %>
+    </ul>
+  <% } else { %>
+    <div class="feed as-list">
+      <% rows.forEach(function (p) { %>
+        <%- include('partials/post-card', { p, rank: null }) %>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <% if (page > 1 || hasNext) { %>
+    <nav class="pager" aria-label="페이지">
+      <% if (page > 1) { %><a href="/me/activity?tab=<%= tab %>&page=<%= page - 1 %>">‹ 이전</a><% } else { %><span></span><% } %>
+      <span><%= page %></span>
+      <% if (hasNext) { %><a href="/me/activity?tab=<%= tab %>&page=<%= page + 1 %>">다음 ›</a><% } else { %><span></span><% } %>
+    </nav>
+  <% } %>
+</main>
+<%- include('partials/foot') %>

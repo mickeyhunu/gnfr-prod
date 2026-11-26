@@ -1,0 +1,40 @@
+<%- include('partials/head', { title }) %>
+<% const statusLabel = { pending: '심사 중', approved: '게시 중', rejected: '반려', suspended: '게시 중단', ended: '내림' }; %>
+<main class="list">
+  <% if (notice) { %><p class="notice" role="status"><%= notice %></p><% } %>
+  <% const active = list.filter(function (a) { return a.status === 'pending' || a.status === 'approved'; }).length; %>
+  <div class="mine-head">
+    <div>
+      <h2>내 광고</h2>
+      <p class="mine-quota">심사 중·게시 중 <b><%= active %></b> / <%= limit %>개</p>
+    </div>
+    <% if (active < limit) { %><a href="/ads/new" class="btn-pill">광고 신청</a><% } %>
+  </div>
+  <% if (active >= limit) { %><p class="hint mine-full">광고는 <%= limit %>개까지 걸 수 있어요. 하나를 내리거나 신청을 취소하면 새로 신청할 수 있어요.</p><% } %>
+
+  <% if (!list.length) { %><p class="empty">등록한 광고가 없어요.</p><% } %>
+
+  <div class="ad-list">
+    <% list.forEach(function (a) { %>
+      <article class="ad-card mine">
+        <div class="ad-meta">
+          <span class="ad-status s-<%= a.status %>"><%= statusLabel[a.status] %></span>
+          <% if (a.kind === 'job') { %><span class="kind-badge job">구인</span><% } %>
+          <span><%= catName(a.category) %></span>
+          <span><%= h.timeAgo(a.created_at) %> 신청</span>
+          <% if (a.status === 'approved') { %><span>조회 <%= a.view_count %></span><% } %>
+        </div>
+        <a href="/ads/<%= a.id %>" class="ad-title"><%= a.title %></a>
+        <span class="ad-biz"><%= a.business_name %> · 국세청 <%= a.nts_status || '확인 전' %></span>
+        <% if (a.status_note) { %><p class="ad-note"><%= a.status_note %></p><% } %>
+        <% if (['pending', 'approved', 'suspended'].includes(a.status)) { %>
+          <form method="post" action="/ads/<%= a.id %>/end" data-confirm="이 광고를 내릴까요? 다시 올리려면 새로 신청해야 해요.">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" class="btn-sm danger"><%= a.status === 'pending' ? '신청 취소' : '광고 내리기' %></button>
+          </form>
+        <% } %>
+      </article>
+    <% }) %>
+  </div>
+</main>
+<%- include('partials/foot') %>

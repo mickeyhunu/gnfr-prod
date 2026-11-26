@@ -1,0 +1,71 @@
+<%- include('partials/head', { title }) %>
+<%
+  const liveUrl = (c, v) => { const q = [c ? 'cat=' + encodeURIComponent(c) : '', v === 'map' ? 'view=map' : ''].filter(Boolean).join('&'); return '/live' + (q ? '?' + q : ''); };
+  const viewHref = (v) => liveUrl(cat, v);
+  const catHref = (c) => liveUrl(c, view);
+  const cardIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="8" rx="2"/><rect x="3" y="13" width="18" height="8" rx="2"/></svg>';
+  const mapIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
+%>
+<% if (categories.length) { %>
+<header class="top">
+  <div class="top-row">
+    <nav class="chips" aria-label="업종">
+      <a href="<%= catHref(null) %>" class="chip<%= !cat ? ' on' : '' %>" <%- !cat ? 'aria-current="page"' : '' %>>전체 <span class="chip-count"><%= total %></span></a>
+      <% categories.forEach(function (c) { %>
+        <a href="<%= catHref(c) %>" class="chip<%= cat === c ? ' on' : '' %>" <%- cat === c ? 'aria-current="page"' : '' %>><%= c %></a>
+      <% }) %>
+    </nav>
+    <% const nextView = view === 'map' ? 'card' : 'map'; %>
+    <a href="<%= viewHref(nextView) %>" class="view-pick" aria-label="<%= nextView === 'map' ? '지도로 보기' : '카드로 보기' %> (지금 <%= view === 'map' ? '지도' : '카드' %>)" title="<%= nextView === 'map' ? '지도로 보기' : '카드로 보기' %>"><%- view === 'map' ? mapIcon : cardIcon %></a>
+  </div>
+</header>
+<% } %>
+
+<main class="list<%= view === 'map' ? ' is-map' : '' %>">
+  <% if (!stores.length) { %>
+    <p class="empty">아직 등록된 가게 정보가 없어요.</p>
+  <% } else if (view === 'map') { %>
+    <% if (!kakaoKey) { %>
+      <p class="empty">지도를 준비하고 있어요.<br>지금은 카드로 볼 수 있어요.</p>
+    <% } else { %>
+      <div class="store-map-wrap">
+        <div id="store-map" class="store-map-box" data-stores="<%= JSON.stringify(mapData) %>" role="region" aria-label="가게 지도"></div>
+        <p class="store-map-status" data-map-status role="status" aria-live="polite">지도를 불러오는 중이에요.</p>
+        <a class="store-pop" data-map-card hidden href="#">
+          <span class="store-thumb" aria-hidden="true"><span class="store-emoji" data-f="emoji"></span><span class="store-thumb-label" data-f="place"></span></span>
+          <span class="store-main">
+            <span class="store-title"><span class="store-region" data-f="region"></span> <span data-f="name"></span></span>
+            <span class="store-cat" data-f="category"></span>
+            <span class="store-line" data-f="address"></span>
+            <span class="store-tags"><span class="store-tag" data-f="hours"></span></span>
+          </span>
+        </a>
+      </div>
+      <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=<%= encodeURIComponent(kakaoKey) %>&libraries=services&autoload=false" defer></script>
+      <script src="/js/live-map.js" defer></script>
+    <% } %>
+  <% } else { %>
+    <ul class="store-list">
+      <% stores.forEach(function (s) { %>
+        <li>
+          <a class="store-card" href="/live/<%= s.id %>">
+            <span class="store-thumb" aria-hidden="true">
+              <span class="store-emoji"><%= s.emoji || '🏙️' %></span>
+              <span class="store-thumb-label"><%= s.dong || s.region %></span>
+            </span>
+            <span class="store-main">
+              <span class="store-title"><span class="store-region">[<%= s.region %>]</span> <%= s.name %></span>
+              <span class="store-cat"><%= s.category %></span>
+              <span class="store-line"><%= s.intro || s.address %></span>
+              <span class="store-tags">
+                <% if (s.dong) { %><span class="store-tag"><%= s.dong %></span><% } %>
+                <span class="store-tag"><%= s.hours ? s.hours : '영업시간 정보 없음' %></span>
+              </span>
+            </span>
+          </a>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</main>
+<%- include('partials/foot') %>

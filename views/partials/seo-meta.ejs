@@ -1,0 +1,39 @@
+<%# 검색엔진·AI 검색·SNS 미리보기용 메타 (화면에 보이지 않음). 값은 src/services/seo.js 에서 채움 %>
+<meta name="rating" content="adult">
+<meta name="application-name" content="강남의숲">
+<meta name="format-detection" content="telephone=no">
+<% if (seo.indexable) { %>
+  <meta name="description" content="<%= seo.description %>">
+  <meta name="keywords" content="<%= site.keywords.join(', ') %>">
+  <link rel="canonical" href="<%= seo.canonical %>">
+  <link rel="alternate" hreflang="ko-KR" href="<%= seo.canonical %>">
+  <link rel="sitemap" type="application/xml" href="<%= siteUrl %>/sitemap.xml">
+  <link rel="alternate" type="text/plain" title="LLM 요약" href="<%= siteUrl %>/llms.txt">
+  <%# 지역 정보 (서울 강남구) %>
+  <meta name="geo.region" content="<%= site.geo.region %>">
+  <meta name="geo.placename" content="<%= site.geo.placename %>">
+  <meta name="geo.position" content="<%= site.geo.lat %>;<%= site.geo.lng %>">
+  <meta name="ICBM" content="<%= site.geo.lat %>, <%= site.geo.lng %>">
+  <%# Open Graph (카카오톡·페이스북 등 링크 미리보기) %>
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="<%= site.name %>">
+  <meta property="og:locale" content="<%= site.locale %>">
+  <meta property="og:title" content="<%= seo.title %>">
+  <meta property="og:description" content="<%= seo.description %>">
+  <meta property="og:url" content="<%= seo.canonical %>">
+  <meta property="og:image" content="<%= siteUrl + site.logo.path %>">
+  <meta property="og:image:width" content="<%= site.logo.width %>">
+  <meta property="og:image:height" content="<%= site.logo.height %>">
+  <meta property="og:image:alt" content="<%= site.name %> 로고">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="<%= seo.title %>">
+  <meta name="twitter:description" content="<%= seo.description %>">
+  <meta name="twitter:image" content="<%= siteUrl + site.logo.path %>">
+  <%# 구조화 데이터 (schema.org JSON-LD): 실행되는 스크립트가 아니라 데이터라 CSP 와 무관 %>
+  <script type="application/ld+json"><%- seo.jsonLd %></script>
+<% } else { %>
+  <%# 회원 전용 화면: 링크를 공유해도 내용이 미리보기로 새지 않게 사이트 이름만 %>
+  <meta property="og:site_name" content="<%= site.name %>">
+  <meta property="og:title" content="<%= site.name %>">
+  <meta property="og:description" content="<%= seo.description %>">
+<% } %>

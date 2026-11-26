@@ -1,0 +1,127 @@
+<%- include('partials/head', { title, bodyClass: 'start' }) %>
+<main class="landing">
+  <section class="age-strip" aria-labelledby="age-title">
+    <span class="age-mark" aria-hidden="true">19</span>
+    <p><strong id="age-title">19세 미만 이용 불가</strong> 이 정보내용은 청소년 유해매체물로서 「정보통신망 이용촉진 및 정보보호 등에 관한 법률」 및 「청소년 보호법」에 따라 19세 미만의 청소년은 이용할 수 없습니다. <a href="https://www.naver.com" rel="noopener noreferrer">나가기</a></p>
+  </section>
+
+  <!-- 첫 화면 -->
+  <section class="lp-hero">
+    <h1>강남에서 일하는 사람들의<br>익명 이야기 공간</h1>
+    <p class="lp-lead">19세 이상 여부와 성별만 확인해요.<br>안에서는 이름도 얼굴도 없어요.</p>
+    <div class="lp-cta">
+      <a href="/signup" class="btn-primary">19세 인증으로 가입하기</a>
+      <a href="/login" class="btn-ghost">이미 계정이 있어요</a>
+      <p class="lp-fine">휴대폰 번호는 글과 댓글에 표시되지 않아요.</p>
+    </div>
+
+    <div class="lp-visual">
+      <%- include('partials/forest-band', { idp: 'fb1' }) %>
+      <div class="mk-phone" aria-label="강남의숲 앱 화면 예시. 게시판 칩과 익명 글 목록이 보인다." role="img">
+        <div class="mk-bar"><img src="/images/brand/logo.webp" width="1199" height="1312" alt=""><b>강남의숲</b></div>
+        <div class="mk-chips"><span class="on">전체</span><span class="hot">🔥 핫</span><span>자유의숲</span><span>후기의숲</span></div>
+        <div class="mk-list">
+          <div class="mk-card"><i class="mk-tag hot">🔥 핫</i><p>오늘 역삼 쪽 손님 많던데 다들 어땠어요?</p><small>♡ 42 · 댓글 18</small></div>
+          <div class="mk-card"><i class="mk-tag">썰의숲</i><p>출근길에 있었던 황당한 일 썰 풀어요</p><small>♡ 27 · 댓글 9</small></div>
+          <div class="mk-card"><i class="mk-tag">질문의숲</i><p>처음 일 시작할 때 꼭 알아야 할 거 있을까요</p><small>♡ 15 · 댓글 23</small></div>
+          <div class="mk-card"><i class="mk-tag">후기의숲</i><p>논현 새로 생긴 곳 다녀온 후기</p><small>♡ 11 · 댓글 6</small></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 소개 -->
+  <section class="lp-about">
+    <h2>강남의숲은 어떤 곳인가요</h2>
+    <p class="lp-quote">“아무에게도 못 한 이야기,<br>숲에 털어놓고 가요.”</p>
+    <p>같은 동네에서 같은 밤을 보내는 사람들끼리 일 이야기, 사람 이야기, 가게 이야기를 편하게 나누는 곳이에요. 누가 썼는지는 아무도 몰라요.</p>
+  </section>
+
+  <!-- 기능 -->
+  <section class="lp-section">
+    <h2>안에서는 이런 일이 있어요</h2>
+    <ul class="lp-features">
+      <li>
+        <span class="lp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span>
+        <div><b>실시간강남</b><p>가게별 초톡, 웨이팅 같은 지금 강남 소식을 한눈에 봐요. <em>준비 중</em></p></div>
+      </li>
+      <li>
+        <span class="lp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg></span>
+        <div><b>네 개의 숲</b><p>자유의숲 · 후기의숲 · 썰의숲 · 질문의숲. 이야기에 맞는 곳에 써요.</p></div>
+      </li>
+      <li>
+        <span class="lp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></svg></span>
+        <div><b>🔥 핫 게시판</b><p>최근 추천을 많이 받은 글만 따로 모아 봐요.</p></div>
+      </li>
+      <li>
+        <span class="lp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
+        <div><b>익명 번호 댓글</b><p>글마다 익명1, 익명2처럼 새 번호가 붙어요. 다른 글에서는 같은 사람인지 알 수 없어요.</p></div>
+      </li>
+      <li>
+        <span class="lp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg></span>
+        <div><b>신고하면 바로 가려져요</b><p>특정인을 알아볼 수 있는 글, 불법 광고는 신고가 쌓이면 자동으로 숨겨져요.</p><a href="/rules">운영 규칙 ›</a></div>
+      </li>
+    </ul>
+  </section>
+
+  <!-- 화면 미리보기 -->
+  <section class="lp-section">
+    <h2>화면은 이렇게 생겼어요</h2>
+    <div class="lp-shots">
+      <figure>
+        <div class="mk-screen" role="img" aria-label="글 목록 화면 예시">
+          <div class="mk-chips"><span>전체</span><span class="hot on">🔥 핫</span><span>자유의숲</span></div>
+          <div class="mk-list">
+            <div class="mk-card mk-rank"><em>1</em><div><p>요즘 강남 분위기 어떤가요</p><small>♡ 58 · 댓글 31</small></div></div>
+            <div class="mk-card mk-rank"><em>2</em><div><p>단골 손님한테 들은 웃긴 말</p><small>♡ 44 · 댓글 20</small></div></div>
+            <div class="mk-card mk-rank"><em>3</em><div><p>퇴근하고 다들 뭐 먹어요?</p><small>♡ 39 · 댓글 47</small></div></div>
+            <div class="mk-card mk-rank"><em>4</em><div><p>신사 쪽 주차 팁 공유</p><small>♡ 21 · 댓글 8</small></div></div>
+          </div>
+        </div>
+        <figcaption>지금 뜨는 글은 핫에서</figcaption>
+      </figure>
+      <figure>
+        <div class="mk-screen" role="img" aria-label="글과 댓글 화면 예시">
+          <div class="mk-post">
+            <i class="mk-tag">질문의숲</i>
+            <p class="mk-title">처음 일 시작할 때 꼭 알아야 할 거 있을까요</p>
+            <small>익명 · 12분 전</small>
+          </div>
+          <div class="mk-comments">
+            <div class="mk-cmt"><div><b>익명1</b><p>무리하지 말고 쉬는 날 꼭 챙겨요</p></div></div>
+            <div class="mk-cmt"><div><b class="author">글쓴이</b><p>감사해요 명심할게요!</p></div></div>
+            <div class="mk-cmt"><div><b>익명2</b><p>돈 관리부터 하세요 진짜로</p></div></div>
+          </div>
+        </div>
+        <figcaption>익명 번호로 이어지는 대화</figcaption>
+      </figure>
+      <figure>
+        <div class="mk-screen" role="img" aria-label="실시간강남 화면 예시">
+          <div class="mk-live-head">지금 강남 가게 현황</div>
+          <div class="mk-list">
+            <div class="mk-live"><b>역삼 A</b><span class="busy">웨이팅 많음</span></div>
+            <div class="mk-live"><b>논현 B</b><span>초톡 진행 중</span></div>
+            <div class="mk-live"><b>신사 C</b><span class="calm">여유</span></div>
+            <div class="mk-live"><b>청담 D</b><span>초톡 진행 중</span></div>
+          </div>
+        </div>
+        <figcaption>실시간강남 (준비 중)</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 마지막 안내 -->
+  <section class="lp-end">
+    <%- include('partials/forest-band', { idp: 'fb2' }) %>
+    <div class="lp-end-body">
+      <span class="lp-end-mark"><img src="/images/brand/logo.webp" width="1199" height="1312" alt=""></span>
+      <p class="lp-end-title">오늘 하고 싶은 이야기가 있나요</p>
+      <p class="lp-end-sub">휴대폰 인증 한 번이면 돼요.</p>
+      <a href="/signup" class="btn-primary">지금 시작하기</a>
+      <nav class="lp-links" aria-label="안내">
+        <a href="/rules">운영 규칙</a><span aria-hidden="true">·</span><a href="/login">로그인</a>
+      </nav>
+    </div>
+  </section>
+</main>
+<%- include('partials/foot') %>

@@ -1,0 +1,80 @@
+<%- include('../partials/admin-top', { title, adminTab }) %>
+  <section>
+    <h2>검토 대기 글</h2>
+    <p class="hint">검토가 필요한 단어가 들어가서 공개되지 않은 글이에요. 특정인을 알아볼 수 있으면 가리세요. 글은 지우지 않고 기록으로 남아요.</p>
+    <% if (!pendingPosts.length) { %><p class="empty-sm">없어요.</p><% } %>
+    <div class="admin-list">
+      <% pendingPosts.forEach(function (p) { %>
+        <details class="admin-row">
+          <summary>
+            <span class="tag"><%= p.board %></span>
+            <span class="admin-row-title"><%= p.title %></span>
+            <span class="admin-row-side"><%= h.timeAgo(p.created_at) %></span>
+          </summary>
+          <div class="admin-row-body">
+            <div class="meta"><span>#<%= p.id %></span><a href="/admin/users?q=%23<%= p.user_id %>">작성자 #<%= p.user_id %></a><a href="/p/<%= p.id %>">글 화면에서 보기</a></div>
+            <% if (p.flag_words) { %><p class="flag">걸린 단어: <%= p.flag_words %></p><% } %>
+            <div class="admin-body"><%= p.body %></div>
+            <%- include('../partials/admin-mod-actions', { kind: 'posts', id: p.id, status: 'pending', userId: p.user_id, back: '/admin/review', dismiss: null }) %>
+          </div>
+        </details>
+      <% }) %>
+    </div>
+  </section>
+
+  <section>
+    <h2>검토 대기 댓글</h2>
+    <% if (!pendingComments.length) { %><p class="empty-sm">없어요.</p><% } %>
+    <div class="admin-list">
+      <% pendingComments.forEach(function (c) { %>
+        <details class="admin-row">
+          <summary>
+            <span class="tag muted">댓글</span>
+            <span class="admin-row-title"><%= c.body %></span>
+            <span class="admin-row-side"><%= h.timeAgo(c.created_at) %></span>
+          </summary>
+          <div class="admin-row-body">
+            <div class="meta"><span>#<%= c.id %></span><a href="/admin/users?q=%23<%= c.user_id %>">작성자 #<%= c.user_id %></a></div>
+            <a class="admin-link" href="/p/<%= c.post_id %>">원글: <%= c.post_title %></a>
+            <% if (c.flag_words) { %><p class="flag">걸린 단어: <%= c.flag_words %></p><% } %>
+            <div class="admin-body"><%= c.body %></div>
+            <%- include('../partials/admin-mod-actions', { kind: 'comments', id: c.id, status: 'pending', userId: c.user_id, back: '/admin/review', dismiss: null }) %>
+          </div>
+        </details>
+      <% }) %>
+    </div>
+  </section>
+
+  <section>
+    <h2>신고 들어온 글·댓글</h2>
+    <% if (!reported.length) { %><p class="empty-sm">없어요.</p><% } %>
+    <div class="admin-list">
+      <% reported.forEach(function (r) { const isPost = r.target_type === 'post'; %>
+        <details class="admin-row">
+          <summary>
+            <span class="tag hot">신고 <%= r.cnt %></span>
+            <span class="admin-row-title"><%= isPost ? '' : '[댓글] ' %><%= r.summary %></span>
+            <span class="admin-row-side"><%= modStatus[r.status] || r.status %></span>
+          </summary>
+          <div class="admin-row-body">
+            <div class="meta">
+              <span><%= isPost ? '글' : '댓글' %> #<%= r.target_id %></span>
+              <span>마지막 신고 <%= h.timeAgo(r.last_at) %></span>
+              <a href="/admin/users?q=%23<%= r.user_id %>">작성자 #<%= r.user_id %></a>
+            </div>
+            <p class="flag">이유: <%= String(r.reasons || '').split(',').map(k => reasons[k] || k).join(', ') %></p>
+            <% if (r.details) { const ds = r.details.split('\n'); %>
+              <ul class="report-details">
+                <% ds.slice(0, 5).forEach(function (d) { %><li><%= d %></li><% }) %>
+                <% if (ds.length > 5) { %><li class="more">외 <%= ds.length - 5 %>건</li><% } %>
+              </ul>
+            <% } %>
+            <% if (r.status !== 'deleted') { %><a href="/p/<%= r.post_id %><%= isPost ? '' : '#c' + r.target_id %>" class="admin-link"><%= isPost ? '글 보기' : '원글에서 보기' %></a><% } %>
+            <%- include('../partials/admin-mod-actions', { kind: isPost ? 'posts' : 'comments', id: r.target_id, status: r.status, userId: r.user_id, back: '/admin/review', dismiss: r.target_type }) %>
+          </div>
+        </details>
+      <% }) %>
+    </div>
+  </section>
+</main>
+<%- include('../partials/foot') %>

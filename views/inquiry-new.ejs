@@ -1,0 +1,36 @@
+<%- include('partials/head', { title }) %>
+<main class="list">
+  <p class="back-link"><a href="/me">‹ 마이페이지</a></p>
+
+  <section class="info-box" aria-labelledby="inq-title">
+    <h2 id="inq-title">1:1 문의하기</h2>
+    <p class="hint">운영팀만 볼 수 있어요. 글·댓글 신고는 해당 글의 신고 버튼을 이용해주세요.</p>
+    <% if (full) { %>
+      <p class="error" role="alert">답변을 기다리는 문의가 <%= openLimit %>개예요. 답변을 받은 뒤 다시 문의해주세요.</p>
+      <a href="/me/inquiries" class="btn-sm inquiry-go">문의내역 보기</a>
+    <% } else { %>
+    <form class="auth-form edit-form inquiry-form" method="post" action="/me/inquiries/new">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <fieldset class="inquiry-cats">
+        <legend>문의 종류</legend>
+        <div class="chips wrap">
+          <% Object.keys(cats).forEach(function (k) { %>
+            <label class="chip-radio">
+              <input type="radio" name="category" value="<%= k %>" <%= form.category === k ? 'checked' : '' %> required>
+              <span><%= cats[k] %></span>
+            </label>
+          <% }) %>
+        </div>
+      </fieldset>
+      <label for="inq-subject">제목</label>
+      <input id="inq-subject" name="title" maxlength="100" placeholder="제목을 입력해 주세요" value="<%= form.title %>" required>
+      <label for="inq-body">내용</label>
+      <textarea id="inq-body" name="body" maxlength="<%= bodyMax %>" rows="8" placeholder="내용을 입력해주세요" required><%= form.body %></textarea>
+      <p class="hint">비밀번호 같은 개인정보는 적지 마세요.</p>
+      <% if (error) { %><p class="error" role="alert"><%= error %></p><% } %>
+      <button type="submit" class="btn-primary">문의 보내기</button>
+    </form>
+    <% } %>
+  </section>
+</main>
+<%- include('partials/foot') %>

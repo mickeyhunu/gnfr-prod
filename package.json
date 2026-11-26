@@ -1,0 +1,34 @@
+{
+  "name": "gangnam-forest",
+  "version": "1.0.0",
+  "description": "강남의숲 - 익명 커뮤니티",
+  "main": "src/app.js",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js",
+    "setup-db": "node scripts/setup-db.js",
+    "make-admin": "node scripts/make-admin.js",
+    "admin-account": "node scripts/admin-account.js",
+    "referral-rollout": "node scripts/referral-rollout.js",
+    "seed-stores": "node scripts/seed-stores.js",
+    "migrate-images": "node scripts/migrate-images.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.967.0",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.1",
+    "express-mysql-session": "^3.0.3",
+    "express-rate-limit": "^7.4.1",
+    "express-session": "^1.18.1",
+    "helmet": "^8.0.0",
+    "multer": "^2.5.0",
+    "mysql2": "^3.11.4",
+    "sanitize-html": "^2.17.5",
+    "sharp": "^0.34.5"
+  }
+}
