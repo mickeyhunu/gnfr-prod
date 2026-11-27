@@ -140,6 +140,9 @@ applySchema(db.pool)
   .then(() => {
     app.listen(config.port, () => {
       console.log(`강남의숲 실행 중: ${config.baseUrl} (포트 ${config.port})`);
+      if (config.isProd && /\/\/(localhost|127\.0\.0\.1)/.test(config.baseUrl)) {
+        console.warn('[경고] BASE_URL 이 localhost 예요. .env 에 실제 주소(https://도메인)를 적으세요. (사이트맵·대표 주소가 localhost 로 나가요)');
+      }
       require('./services/ads').startRecheckJob();
       if (!config.ads.ntsServiceKey) console.warn('[경고] NTS_BUSINESS_API_SERVICE_KEY 가 비어 있어 광고 신청을 받을 수 없어요.');
       const kcpWhy = kcp.notReadyReason();

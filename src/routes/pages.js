@@ -172,7 +172,7 @@ router.get('/me', requireLogin, async (req, res, next) => {
       },
       notice: req.session.meNotice || null,
       myCode,
-      inviteUrl: `${config.baseUrl.replace(/\/+$/, '')}/r/${myCode}`,
+      inviteUrl: `${require('../services/seo').siteOrigin(req)}/r/${myCode}`,
       viaMaster: !!req.user.referrer_code && req.user.referrer_code === config.referral.masterCode,
       referralError: req.session.referralError || null,
     });

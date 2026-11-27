@@ -35,6 +35,23 @@ const PUBLIC_PAGES = {
 const baseUrl = () => config.baseUrl.replace(/\/+$/, '');
 const abs = (p) => baseUrl() + p;
 
+// 화면에 보여줄 사이트 주소 (초대 링크 등). 보통은 BASE_URL
+//   BASE_URL 이 비었거나 localhost 인데 실제로는 다른 주소(도메인·IP)로 접속했으면 그 접속 주소를 씀
+const LOCAL_HOST = /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i;
+function siteOrigin(req) {
+  const fixed = baseUrl();
+  let fixedHost = '';
+  try {
+    fixedHost = new URL(fixed).host;
+  } catch (_) {
+    /* 잘못된 BASE_URL 은 접속 주소로 대체 */
+  }
+  const host = req && req.get('host');
+  if (fixedHost && !LOCAL_HOST.test(fixedHost)) return fixed;
+  if (!host || LOCAL_HOST.test(host)) return fixed;
+  return `${req.protocol}://${host}`; // 운영은 trust proxy 라 nginx 의 https 가 반영됨
+}
+
 // <script type="application/ld+json"> 안에 넣어도 태그가 깨지지 않게
 const jsonForScript = (obj) => JSON.stringify(obj).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
 
@@ -163,4 +180,4 @@ function llmsTxt() {
   ].join('\n');
 }
 
-module.exports = { SITE, PUBLIC_PAGES, seoLocals, robotsTxt, sitemapXml, llmsTxt };
+module.exports = { SITE, PUBLIC_PAGES, seoLocals, robotsTxt, sitemapXml, llmsTxt, siteOrigin };
