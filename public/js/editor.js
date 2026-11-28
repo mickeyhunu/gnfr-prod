@@ -239,7 +239,7 @@
     var fd = new FormData();
     fd.append('image', file);
     say('사진을 올리는 중이에요…');
-    fetch('/ads/images', { method: 'POST', headers: { 'X-CSRF-Token': csrf }, body: fd, credentials: 'same-origin' })
+    fetch(root.getAttribute('data-upload-url') || '/ads/images', { method: 'POST', headers: { 'X-CSRF-Token': csrf }, body: fd, credentials: 'same-origin' })
       .then(function (r) { return r.json().catch(function () { return { ok: false }; }); })
       .then(function (j) {
         if (!j.ok) { say(j.message || '사진을 올리지 못했어요.', true); return; }

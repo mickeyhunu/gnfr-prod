@@ -8,18 +8,23 @@
   const fileAccept = 'image/jpeg,image/png,image/webp,application/pdf';
 %>
 <header class="bar">
-  <a href="/ads" class="icon-btn" aria-label="목록으로">
+  <a href="<%= edit ? '/ads/mine' : '/ads' %>" class="icon-btn" aria-label="<%= edit ? '내 광고로' : '목록으로' %>">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
   </a>
-  <span class="bar-title">광고 등록</span>
+  <span class="bar-title"><%= edit ? '광고 수정' : '광고 등록' %></span>
   <span class="icon-btn" aria-hidden="true"></span>
 </header>
 
 <main class="ad-form-wrap">
+  <% if (edit) { %>
+  <p class="notice<%= edit.status === 'approved' ? ' warn' : '' %>"><%= edit.status === 'approved' ? '고친 내용은 운영자가 다시 확인한 뒤 올라가요. 확인하는 동안에는 광고 목록에서 잠시 내려가요.' : '고친 내용은 운영자가 다시 확인한 뒤 올라가요.' %></p>
+  <% if (edit.status_note && ['rejected', 'suspended'].includes(edit.status)) { %><p class="notice warn"><%= edit.status === 'rejected' ? '반려' : '중단' %> 사유: <%= edit.status_note %></p><% } %>
+  <% } else { %>
   <ol class="ad-steps" aria-label="등록 단계">
     <li class="<%= step === 1 ? 'on' : 'done' %>" <%- step === 1 ? 'aria-current="step"' : '' %>><b>1</b>사업자 확인</li>
     <li class="<%= step === 2 ? 'on' : '' %>" <%- step === 2 ? 'aria-current="step"' : '' %>><b>2</b>광고 작성</li>
   </ol>
+  <% } %>
 
   <% if (error && !errorField) { %><p class="error" role="alert"><%= error %></p><% } %>
 
@@ -99,15 +104,14 @@
   <% } else { %>
   <section class="biz-ok" aria-label="확인된 사업자">
     <div>
-      <span class="ad-verified">국세청 <%= draft.nts_status || '계속사업자' %> 확인</span>
       <strong><%= draft.business_name %></strong>
       <span><%= fmtBizNo(draft.b_no) %> · <%= catName(draft.category) %></span>
-      <span>서류: <%= Object.keys(docs).map(function (k) { return docLabel[k] + (docs[k] > 1 ? ' ' + docs[k] + '개' : ''); }).join(', ') %></span>
+      <% if (Object.keys(docs).length) { %><span>서류: <%= Object.keys(docs).map(function (k) { return docLabel[k] + (docs[k] > 1 ? ' ' + docs[k] + '개' : ''); }).join(', ') %></span><% } %>
     </div>
-    <a href="/ads/new?reset=1" class="link-sm">다시 입력</a>
+    <% if (!edit) { %><a href="/ads/new?reset=1" class="link-sm">다시 입력</a><% } %>
   </section>
 
-  <form method="post" action="/ads/new" class="ad-form" data-ad-write>
+  <form method="post" action="<%= edit ? '/ads/' + edit.id + '/edit' : '/ads/new' %>" class="ad-form" data-ad-write>
     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
     <fieldset>
@@ -120,12 +124,50 @@
     </fieldset>
 
     <fieldset>
+      <legend>대표 이미지 <span class="opt">선택</span></legend>
+      <div class="ad-cover-field<%= cover.set ? '' : ' is-default' %>" data-ad-cover <%- edit ? 'data-edit="' + edit.id + '"' : '' %>>
+        <img class="ad-cover" src="<%= cover.url %>" alt="대표 이미지 미리보기" data-cover-img>
+        <div class="ad-cover-actions">
+          <button type="button" class="btn-sm" data-cover-pick><%= cover.set ? '사진 바꾸기' : '사진 고르기' %></button>
+          <button type="button" class="btn-sm" data-cover-remove <%= cover.set ? '' : 'hidden' %>>빼기</button>
+          <input type="file" accept="image/jpeg,image/png,image/webp" data-cover-input hidden>
+        </div>
+        <p class="editor-status" data-cover-status role="status" aria-live="polite"></p>
+      </div>
+      <p class="hint">광고 목록과 광고 위쪽에 보여요. 가로로 긴 사진(16:9)이 잘 맞고, 안 넣으면 강남의숲 기본 이미지가 들어가요. JPG·PNG·WEBP, <%= maxMb %>MB 이하.</p>
+    </fieldset>
+
+    <fieldset>
       <legend>광고 내용</legend>
+      <label for="store_name">업체명 <b class="req">필수</b></label>
+      <input id="store_name" name="store_name" maxlength="40" placeholder="예) 달리는토끼" value="<%= form.store_name || '' %>" required <%- inv('store_name') %>>
+      <%- fieldErr('store_name') %>
+      <% const is24 = form.hours_open === '00:00' && form.hours_close === '24:00'; const offDays = String(form.closed_days || '').split(','); %>
+      <label for="hours_open">영업시간 <span class="opt">선택</span></label>
+      <div class="hours-row" data-hours>
+        <select id="hours_open" name="hours_open" aria-label="여는 시간" <%= is24 ? 'disabled' : '' %> <%- inv('hours') %>>
+          <option value="">여는 시간</option>
+          <% hourTimes.forEach(function (t) { %><option value="<%= t %>" <%= !is24 && form.hours_open === t ? 'selected' : '' %>><%= t %></option><% }) %>
+        </select>
+        <span aria-hidden="true">~</span>
+        <select name="hours_close" aria-label="닫는 시간" <%= is24 ? 'disabled' : '' %> <%- inv('hours') %>>
+          <option value="">닫는 시간</option>
+          <% hourTimes.forEach(function (t) { %><option value="<%= t %>" <%= !is24 && form.hours_close === t ? 'selected' : '' %>><%= t %></option><% }) %>
+        </select>
+      </div>
+      <label class="check"><input type="checkbox" name="hours_24" value="1" <%= is24 ? 'checked' : '' %> data-hours-24><span>24시간 영업</span></label>
+      <label>휴무 요일 <span class="opt">선택</span></label>
+      <div class="chips wrap day-chips">
+        <% weekdays.forEach(function (d) { %>
+          <label class="chip-radio"><input type="checkbox" name="closed_days" value="<%= d[0] %>" <%= offDays.includes(d[0]) ? 'checked' : '' %>><span><%= d[1] %></span></label>
+        <% }) %>
+      </div>
+      <%- fieldErr('hours') %>
       <label for="title">제목 <b class="req">필수</b></label>
       <input id="title" name="title" maxlength="60" placeholder="제목을 입력해 주세요" value="<%= form.title || '' %>" required <%- inv('title') %>>
       <%- fieldErr('title') %>
       <label id="body-label" for="body_html">내용 <b class="req">필수</b></label>
-      <div class="editor" data-editor data-image-max="<%= imageMax %>">
+      <div class="editor" data-editor data-image-max="<%= imageMax %>" data-upload-url="/ads/images<%= edit ? '?edit=' + edit.id : '' %>">
         <div class="editor-toolbar" role="toolbar" aria-label="글꼴 도구" hidden>
           <button type="button" data-cmd="bold" aria-label="굵게" title="굵게"><b>B</b></button>
           <button type="button" data-cmd="italic" aria-label="기울임" title="기울임"><i>I</i></button>
@@ -195,9 +237,24 @@
       <input id="job_role" name="job_role" maxlength="40" placeholder="직무를 입력해 주세요" value="<%= form.job_role || '' %>">
       <label for="work_hours">근무 시간 <span class="opt">선택</span></label>
       <input id="work_hours" name="work_hours" maxlength="60" placeholder="예) 20:00~03:00, 주 5일" value="<%= form.work_hours || '' %>">
-      <label for="address">근무 주소 <b class="req">필수</b></label>
-      <input id="address" name="address" maxlength="200" placeholder="서울 강남구 …" value="<%= form.address || '' %>" <%- inv('address') %>>
+    </fieldset>
+
+    <fieldset data-addr>
+      <legend><span data-addr-label><%= form.kind === 'ad' ? '업장 주소' : '근무 주소' %></span> <b class="req">필수</b></legend>
+      <div class="addr-row">
+        <input id="address" name="address" maxlength="150" placeholder="주소 검색을 눌러 골라주세요" value="<%= form.address || '' %>" readonly required data-addr-input <%- inv('address') %>>
+        <button type="button" class="btn-sm" data-addr-open>주소 검색</button>
+      </div>
+      <input type="hidden" name="dong" value="<%= form.dong || '' %>" data-addr-dong>
+      <label for="address_detail">상세 주소 <span class="opt">선택</span></label>
+      <input id="address_detail" name="address_detail" maxlength="60" placeholder="건물명, 층, 호수" value="" data-addr-detail>
       <%- fieldErr('address') %>
+      <div class="addr-layer" data-addr-layer hidden>
+        <div class="addr-layer-box" role="dialog" aria-modal="true" aria-label="주소 검색">
+          <div class="addr-layer-head"><strong>주소 검색</strong><button type="button" class="icon-btn" data-addr-close aria-label="닫기">✕</button></div>
+          <div class="addr-embed" data-addr-embed></div>
+        </div>
+      </div>
     </fieldset>
 
     <fieldset>
@@ -222,10 +279,13 @@
     </label>
     <%- fieldErr('agree') %>
 
-    <button type="submit" class="btn-primary">광고 등록하기</button>
+    <button type="submit" class="btn-primary"><%= edit ? '수정해서 다시 심사받기' : '광고 등록하기' %></button>
     <p class="fine">운영자가 확인한 뒤 올라가요. 게시 중에도 국세청 사업자 상태를 주기적으로 다시 확인해요.</p>
   </form>
   <script src="/js/editor.js" defer></script>
+  <script src="/js/ad-cover.js" defer></script>
+  <script src="/js/addr-search.js" defer></script>
+  <script src="/js/ad-hours.js" defer></script>
   <% } %>
 </main>
 <%- include('partials/foot') %>

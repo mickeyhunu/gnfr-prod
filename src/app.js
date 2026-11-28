@@ -33,6 +33,8 @@ app.use(
         imgSrc: ["'self'", 'data:', '*.daumcdn.net', '*.kakao.com', '*.kakaocdn.net', ...(storage.publicOrigin() ? [storage.publicOrigin()] : [])],
         scriptSrc: ["'self'", 'dapi.kakao.com', 't1.daumcdn.net', 't1.kakaocdn.net'],
         connectSrc: ["'self'", 'dapi.kakao.com'],
+        // 카카오(다음) 우편번호 서비스: 광고 작성의 주소 검색 창 (iframe)
+        frameSrc: ["'self'", 'postcode.map.daum.net', 'postcode.map.kakao.com'], // 카카오 SDK 처럼 페이지와 같은 프로토콜로 열려서 프로토콜 없이 적음
         // KCP 본인확인: 인증 화면(call_url)으로 폼 전송
         formAction: ["'self'", 'https://cert.kcp.co.kr', 'https://testcert.kcp.co.kr', ...(config.kcp.apiHost ? [new URL(config.kcp.apiHost).origin] : [])],
         upgradeInsecureRequests: config.isProd ? [] : null,

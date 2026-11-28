@@ -46,6 +46,13 @@ const ADDED_COLUMNS = [
   ['ads', 'work_hours', 'VARCHAR(60) NULL AFTER pay_amount'],
   // 광고 2단계: 에디터 본문, 담당자·메신저, 고용형태
   ['ads', 'body_html', 'MEDIUMTEXT NULL AFTER body'],
+  ['ads', 'cover_image', 'VARCHAR(40) NULL AFTER body_html'],
+  ['ads', 'dong', 'VARCHAR(20) NULL AFTER address'],
+  ['ads', 'store_name', 'VARCHAR(40) NULL AFTER business_name'],
+  ['ads', 'store_hours', 'VARCHAR(60) NULL AFTER store_name'],
+  ['ads', 'hours_open', 'CHAR(5) NULL AFTER store_hours'],
+  ['ads', 'hours_close', 'CHAR(5) NULL AFTER hours_open'],
+  ['ads', 'closed_days', 'VARCHAR(30) NULL AFTER hours_close'],
   ['ads', 'contact_name', 'VARCHAR(30) NULL AFTER link_url'],
   ['ads', 'kakao_id', 'VARCHAR(50) NULL AFTER contact_name'],
   ['ads', 'line_id', 'VARCHAR(50) NULL AFTER kakao_id'],

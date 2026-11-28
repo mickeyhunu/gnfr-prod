@@ -500,6 +500,7 @@ router.get('/ads', async (req, res, next) => {
       pendingAds,
       liveAds,
       adCategory: (k) => adsSvc.CATEGORY.get(k) || { name: k, license: null },
+      coverUrl: adsSvc.coverUrl,
       docLabel: adsSvc.DOC_LABEL,
       payTypes: config.ads.payTypes,
       empTypes: config.ads.employmentTypes,

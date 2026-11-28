@@ -30,21 +30,27 @@
 
   <div class="ad-list">
     <% list.forEach(function (a) { const job = a.kind === 'job'; %>
-      <a href="/ads/<%= a.id %>" class="ad-card<%= job ? ' job' : '' %>">
+      <a href="/ads/<%= a.id %>" class="ad-card with-thumb<%= job ? ' job' : '' %>">
+        <img class="ad-thumb" src="<%= coverUrl(a.cover_image) %>" alt="" loading="lazy" width="88" height="88">
+        <div class="ad-card-body">
         <div class="ad-meta">
           <% if (job) { %><span class="kind-badge job">구인</span><% } %>
           <span class="tag"><%= catName(a.category) %></span>
-          <span class="ad-verified">사업자 확인</span>
           <% if (a.has_license) { %><span class="ad-verified">허가증 확인</span><% } %>
+          <span class="ad-views" aria-label="조회 <%= a.view_count %>회"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><%= Number(a.view_count).toLocaleString('ko-KR') %></span>
         </div>
-        <strong class="ad-title"><%= a.title %></strong>
-        <span class="ad-biz"><%= a.business_name %></span>
+        <% const head = [dongOf(a.dong, a.address), a.store_name || a.business_name].filter(Boolean).join(' '); %>
+        <strong class="ad-title"><% if (head) { %><span class="ad-dong">[<%= head %>]</span> <% } %><%= a.title %></strong>
+        <% if (a.contact_name || a.store_hours) { %>
+          <div class="ad-sub">
+            <% if (a.contact_name) { %><span class="ad-biz">👤 <%= a.contact_name %></span><% } %>
+            <% if (a.store_hours) { %><span class="ad-hours">🕒 <%= a.store_hours %></span><% } %>
+          </div>
+        <% } %>
         <% if (job) { %>
           <div class="job-facts"><% if (a.employment_type) { %><span class="job-role"><%= empTypes[a.employment_type] %></span><% } %><span class="job-pay"><%= payText(a) %></span><% if (a.job_role) { %><span><%= a.job_role %></span><% } %><% if (a.work_hours) { %><span><%= a.work_hours %></span><% } %></div>
-        <% } else { %>
-          <p class="ad-preview"><%= a.preview %></p>
         <% } %>
-        <% if (a.address) { %><span class="ad-addr"><%= a.address %></span><% } %>
+        </div>
       </a>
     <% }) %>
   </div>

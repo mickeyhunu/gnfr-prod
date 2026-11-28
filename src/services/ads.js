@@ -43,10 +43,52 @@ async function saveImage(buf) {
   const webp = await image.toWebp(buf);
   if (!webp) return null;
   const name = `${crypto.randomBytes(16).toString('hex')}.webp`;
-  if (storage.isReady()) return { url: await storage.putImage(name, webp, 'image/webp') };
+  if (storage.isReady()) return { name, url: await storage.putImage(name, webp, 'image/webp') };
   await fs.promises.mkdir(IMAGE_DIR, { recursive: true });
   await fs.promises.writeFile(path.join(IMAGE_DIR, name), webp, { flag: 'wx' });
-  return { url: `/ad-img/${name}` };
+  return { name, url: `/ad-img/${name}` };
+}
+
+// 영업시간: 여는·닫는 시각(1시간 단위, 고르기) + 휴무 요일(체크). 화면에 보일 문구는 store_hours 에 만들어 둠
+//   24시간 영업은 00:00 ~ 24:00 으로 저장
+const HOUR_TIMES = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}:00`);
+const WEEKDAYS = [['mon', '월'], ['tue', '화'], ['wed', '수'], ['thu', '목'], ['fri', '금'], ['sat', '토'], ['sun', '일']];
+const DAY_NAME = Object.fromEntries(WEEKDAYS);
+function readHours(body) {
+  const is24 = body.hours_24 === '1';
+  let open = is24 ? '00:00' : String(body.hours_open || '');
+  let close = is24 ? '24:00' : String(body.hours_close || '');
+  if (!is24 && !HOUR_TIMES.includes(open)) open = '';
+  if (!is24 && !HOUR_TIMES.includes(close)) close = '';
+  const picked = [].concat(body.closed_days || []).map(String);
+  const days = WEEKDAYS.map((d) => d[0]).filter((k) => picked.includes(k));
+  let error = null;
+  if (!open !== !close) error = '여는 시간과 닫는 시간을 둘 다 골라주세요.';
+  else if (open && open === close) error = '여는 시간과 닫는 시간이 같아요. 24시간 영업이면 24시간 영업을 체크해주세요.';
+  else if (days.length === 7) error = '휴무 요일을 모두 고를 수는 없어요.';
+  return { open, close, days, error };
+}
+function hoursText(open, close, days) {
+  const list = Array.isArray(days) ? days : String(days || '').split(',').filter(Boolean);
+  const time = open && close ? (open === '00:00' && close === '24:00' ? '24시간' : `${open}~${close}`) : '';
+  const off = list.length ? (list.length === 1 ? `${DAY_NAME[list[0]]}요일 휴무` : `${list.map((d) => DAY_NAME[d]).join('·')} 휴무`) : '';
+  return [time, off].filter(Boolean).join(' · ');
+}
+
+// 광고 동 이름 (목록 제목 앞 [논현동]). 주소 검색이 준 법정동(bname)을 쓰고, 없거나 이상하면 주소 글자에서 찾음
+const DONG_RE = /^[가-힣0-9]{1,12}(동|가|리|읍|면)$/;
+function dongOf(raw, address) {
+  const d = String(raw || '').trim();
+  if (DONG_RE.test(d)) return d;
+  const m = String(address || '').match(/([가-힣]+[0-9]{0,2}(?:동|가))(?=[\s,)]|$)/);
+  return m ? m[1] : null;
+}
+
+// 광고 대표 이미지 주소. ads.cover_image 에는 파일 이름(<hex>.webp)만 저장. 없으면 로고로 만든 기본 이미지
+const DEFAULT_COVER = '/images/brand/ad-cover-default.webp';
+function coverUrl(name) {
+  if (!name || !/^[0-9a-f]{32}\.webp$/.test(name)) return DEFAULT_COVER;
+  return storage.isReady() ? storage.imageUrl(name) : `/ad-img/${name}`;
 }
 
 function filePath(file) {
@@ -153,4 +195,4 @@ async function attachFiles(conn, adId, files) {
   }
 }
 
-module.exports = { IMAGE_DIR, CATEGORY, DOC_LABEL, sniff, saveFile, saveImage, filePath, removeFile, attachFiles, removeDraft, cleanupDrafts, saveStatus, recheckApproved, startRecheckJob };
+module.exports = { IMAGE_DIR, CATEGORY, DOC_LABEL, DEFAULT_COVER, coverUrl, dongOf, HOUR_TIMES, WEEKDAYS, readHours, hoursText, sniff, saveFile, saveImage, filePath, removeFile, attachFiles, removeDraft, cleanupDrafts, saveStatus, recheckApproved, startRecheckJob };

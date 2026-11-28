@@ -41,6 +41,7 @@
           <% const ms = [['카톡', a.kakao_id], ['라인', a.line_id], ['위챗', a.wechat_id], ['텔레그램', a.telegram_id]].filter(function (x) { return x[1]; }); %>
           <% if (ms.length) { %><dt>메신저</dt><dd><%= ms.map(function (x) { return x[0] + ' ' + x[1]; }).join(' · ') %></dd><% } %>
         </dl>
+        <% if (a.cover_image) { %><img class="ad-cover admin-cover" src="<%= coverUrl(a.cover_image) %>" alt="대표 이미지"><% } else { %><p class="doc-hint">대표 이미지 없음 (기본 이미지로 나가요)</p><% } %>
         <div class="admin-body rich-body"><%- a.bodyHtml %></div>
         <div class="admin-actions">
           <form method="post" action="/admin/ads/<%= a.id %>/approve">

@@ -27,11 +27,16 @@
         <a href="/ads/<%= a.id %>" class="ad-title"><%= a.title %></a>
         <span class="ad-biz"><%= a.business_name %> · 국세청 <%= a.nts_status || '확인 전' %></span>
         <% if (a.status_note) { %><p class="ad-note"><%= a.status_note %></p><% } %>
-        <% if (['pending', 'approved', 'suspended'].includes(a.status)) { %>
-          <form method="post" action="/ads/<%= a.id %>/end" data-confirm="이 광고를 내릴까요? 다시 올리려면 새로 신청해야 해요.">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <button type="submit" class="btn-sm danger"><%= a.status === 'pending' ? '신청 취소' : '광고 내리기' %></button>
-          </form>
+        <% if (['pending', 'approved', 'suspended', 'rejected'].includes(a.status)) { %>
+          <div class="ad-mine-actions">
+            <a href="/ads/<%= a.id %>/edit" class="btn-sm"><%= a.status === 'rejected' ? '고쳐서 다시 신청' : '수정' %></a>
+            <% if (a.status !== 'rejected') { %>
+              <form method="post" action="/ads/<%= a.id %>/end" data-confirm="이 광고를 내릴까요? 다시 올리려면 새로 신청해야 해요.">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button type="submit" class="btn-sm danger"><%= a.status === 'pending' ? '신청 취소' : '광고 내리기' %></button>
+              </form>
+            <% } %>
+          </div>
         <% } %>
       </article>
     <% }) %>

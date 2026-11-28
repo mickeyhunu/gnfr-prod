@@ -401,4 +401,42 @@
   if (window.BroadcastChannel && document.querySelector('a[data-kcp-popup]')) {
     new BroadcastChannel('kcp-cert').onmessage = function (e) { goFromKcp(e.data && e.data.go); };
   }
+  // 가로로 넘치는 칩 바(.chips): 컴퓨터에서도 마우스로 끌거나 휠로 좌우 이동
+  //   터치는 브라우저 기본 스크롤 그대로. 끌다가 놓을 때는 칩이 눌리지 않게 클릭을 막음
+  Array.prototype.forEach.call(document.querySelectorAll('.chips:not(.wrap)'), function (bar) {
+    var startX = 0, startLeft = 0, dragging = false, moved = false;
+    var canScroll = function () { return bar.scrollWidth > bar.clientWidth + 1; };
+    var mark = function () { bar.classList.toggle('draggable', canScroll()); };
+    mark();
+    window.addEventListener('resize', mark);
+    bar.addEventListener('pointerdown', function (e) {
+      if (e.pointerType !== 'mouse' || e.button !== 0 || !canScroll()) return;
+      dragging = true; moved = false; startX = e.clientX; startLeft = bar.scrollLeft;
+    });
+    window.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+      var dx = e.clientX - startX;
+      if (!moved && Math.abs(dx) < 5) return; // 살짝 흔들린 건 클릭으로
+      if (!moved) { moved = true; bar.classList.add('dragging'); }
+      bar.scrollLeft = startLeft - dx;
+      e.preventDefault();
+    });
+    window.addEventListener('pointerup', function () {
+      if (!dragging) return;
+      dragging = false;
+      bar.classList.remove('dragging');
+    });
+    bar.addEventListener('click', function (e) {
+      if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; }
+    }, true);
+    bar.addEventListener('dragstart', function (e) { e.preventDefault(); }); // 링크 끌기(브라우저 기본) 막기
+    // 세로 휠 → 가로 이동 (끝에 닿으면 페이지 스크롤로 넘김)
+    bar.addEventListener('wheel', function (e) {
+      if (!canScroll() || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+      var max = bar.scrollWidth - bar.clientWidth;
+      if ((e.deltaY < 0 && bar.scrollLeft <= 0) || (e.deltaY > 0 && bar.scrollLeft >= max - 1)) return;
+      bar.scrollLeft += e.deltaY;
+      e.preventDefault();
+    }, { passive: false });
+  });
 })();
